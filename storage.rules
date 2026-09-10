@@ -1,0 +1,14 @@
+// ⚠️ ESTE ARCHIVO YA NO CONTIENE REGLAS — NO DESPLEGAR.
+//
+// Las reglas de Storage del ecosistema DLX (incluida la ruta
+// portal/projects/** de este portal) viven en UN ÚNICO archivo canónico:
+//
+//     dlx-calculator-main/storage.rules
+//
+// Ese repo tiene el firebase.json que las despliega:
+//     firebase deploy --only storage
+//
+// Cualquier cambio de reglas se hace allí.
+//
+// (Este archivo es intencionadamente inválido como reglas: si alguien intenta
+// desplegarlo por error, el deploy fallará en vez de borrar las reglas reales.)

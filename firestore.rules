@@ -1,0 +1,16 @@
+// ⚠️ ESTE ARCHIVO YA NO CONTIENE REGLAS — NO DESPLEGAR.
+//
+// Las reglas de Firestore del ecosistema DLX (incluidas las colecciones
+// portal_* de este portal) viven en UN ÚNICO archivo canónico:
+//
+//     dlx-calculator-main/firestore.rules
+//
+// Ese repo tiene el firebase.json que las despliega:
+//     firebase deploy --only firestore:rules,firestore:indexes
+//
+// Antes había aquí un "fragmento" que debía fusionarse a mano en la consola;
+// se consolidó para eliminar el riesgo de que un deploy desde otro repo
+// pisara las reglas del portal. Cualquier cambio de reglas se hace allí.
+//
+// (Este archivo es intencionadamente inválido como reglas: si alguien intenta
+// desplegarlo por error, el deploy fallará en vez de borrar las reglas reales.)
