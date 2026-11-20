@@ -127,13 +127,13 @@ export function PhotosClient({
       {/* Cabecera y Introducción */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <FileImage className="h-3.5 w-3.5 text-amber-500" />
+          <FileImage className="h-3.5 w-3.5 text-zinc-500" />
           <span>Seguimiento gráfico</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           Fotos
         </h1>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
           La bitácora visual de tu hogar. Explora las imágenes capturadas durante las visitas técnicas del estudio, filtra por estancia, fecha o fases del camino y comprueba cada detalle del proceso constructivo.
         </p>
       </div>
@@ -234,7 +234,7 @@ export function PhotosClient({
                     </div>
 
                     {/* Pie de foto o descripción */}
-                    <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed font-light text-[11px] line-clamp-2 min-h-[32px]">
+                    <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed text-[11px] line-clamp-2 min-h-[32px]">
                       {photo.caption || "Seguimiento de obra."}
                     </p>
                   </CardContent>
@@ -248,7 +248,7 @@ export function PhotosClient({
             <div className="flex justify-center pt-4 pb-6">
               <Button
                 onClick={handleLoadMore}
-                className="text-[11px] font-semibold uppercase tracking-[0.12em] bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 shadow-sm h-10 px-8 rounded-2xl flex items-center justify-center gap-1.5"
+                className="text-[11px] font-semibold uppercase tracking-[0.12em] bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 shadow-sm h-10 px-8 rounded-full flex items-center justify-center gap-1.5"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Cargar más fotografías ({filteredPhotos.length - visiblePhotos.length} restantes)
@@ -325,7 +325,7 @@ export function PhotosClient({
                   {activeIndexInFiltered + 1} de {filteredPhotos.length}
                 </span>
               </div>
-              <p className="text-white text-[11px] font-sans font-light leading-relaxed pt-1.5">
+              <p className="text-white text-[11px] font-sans leading-relaxed pt-1.5">
                 {lightboxPhoto.caption || "Sin pie de foto descriptivo."}
               </p>
             </div>

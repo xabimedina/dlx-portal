@@ -102,10 +102,10 @@ export default function AccesoPage() {
               <div className="flex justify-center mb-1">
                 <BrandLogo className="h-9" />
               </div>
-              <CardTitle className="text-xl font-light tracking-tight text-zinc-900 dark:text-white">
+              <CardTitle className="text-xl tracking-tight text-zinc-900 dark:text-white">
                 Completando tu acceso
               </CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs font-light max-w-[280px] mx-auto">
+              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs max-w-[280px] mx-auto">
                 Portal de Clientes de Despeja la X
               </CardDescription>
             </CardHeader>
@@ -114,7 +114,7 @@ export default function AccesoPage() {
               {status.kind === "working" && (
                 <div className="flex flex-col items-center gap-4 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-light">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     Verificando tu enlace de acceso...
                   </p>
                 </div>
@@ -122,7 +122,7 @@ export default function AccesoPage() {
 
               {status.kind === "need-email" && (
                 <form onSubmit={handleConfirmEmail} className="space-y-5">
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-light leading-relaxed">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
                     Has abierto el enlace en un dispositivo distinto al que lo pidió.
                     Por seguridad, confirma el correo al que se envió:
                   </p>
@@ -163,7 +163,7 @@ export default function AccesoPage() {
               {status.kind === "error" && (
                 <div className="flex flex-col items-center gap-4 text-center">
                   <ShieldAlert className="h-10 w-10 text-amber-500 bg-amber-500/10 p-2 rounded-full" />
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-light leading-relaxed max-w-[300px]">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-[300px]">
                     {status.message}
                   </p>
                   <Link href="/login" className="w-full">

@@ -32,7 +32,7 @@ export function LogoutButton() {
       variant="outline"
       aria-label="Cerrar sesión"
       title="Cerrar sesión"
-      className="font-mono text-xs uppercase tracking-wider border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:hover:text-white transition-all duration-300"
+      className="font-mono text-xs uppercase tracking-wider border-white/25 bg-transparent text-whitesmoke hover:bg-white/10 hover:text-white dark:border-white/25 dark:bg-transparent dark:hover:bg-white/10 dark:hover:text-white"
     >
       {/* En pantallas estrechas queda solo el icono para no invadir el header */}
       {isLoggingOut ? (

@@ -60,13 +60,13 @@ export function ConstructionClient({
       {/* Cabecera y Introducción */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <HardHat className="h-3.5 w-3.5 text-amber-500" />
+          <HardHat className="h-3.5 w-3.5 text-zinc-500" />
           <span>Seguimiento semanal</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           Diario de obra
         </h1>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
           Toda la obra, bajo control. A continuación encontrarás el reporte semanal de visitas técnicas redactado por tu arquitecto de Despeja la X, documentando el estado de ejecución, las calidades colocadas y un carrete de fotos de los avances.
         </p>
       </div>
@@ -83,7 +83,7 @@ export function ConstructionClient({
           {latestUpdate && (
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+                <Sparkles className="h-4 w-4 text-zinc-500" />
                 <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600 dark:text-zinc-450 font-bold">Última visita de obra</h2>
               </div>
 
@@ -92,7 +92,7 @@ export function ConstructionClient({
                 <div className="px-6 py-5 border-b border-zinc-150/40 dark:border-zinc-800/50 bg-amber-500/[0.03] dark:bg-zinc-900/60 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[9px] bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                      <span className="font-mono text-[9px] bg-amber-500/10 text-zinc-800 dark:bg-amber-500/20 dark:text-amber-400 px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
                         {weekLabel(latestUpdate.week_number)}
                       </span>
                       <span className="font-mono text-[9px] bg-zinc-100 text-zinc-600 dark:text-zinc-500 dark:bg-zinc-950 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
@@ -107,7 +107,7 @@ export function ConstructionClient({
                   {/* Porcentaje de Avance */}
                   <div className="bg-white dark:bg-zinc-950 p-3.5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 self-start sm:self-auto text-center shrink-0 min-w-[110px] shadow-3xs">
                     <span className="text-[10px] font-mono text-zinc-600 dark:text-zinc-400 tracking-wider block uppercase">Avance Real</span>
-                    <span className="text-2xl font-light font-mono block text-zinc-950 dark:text-white mt-0.5">{latestUpdate.progress_percentage}%</span>
+                    <span className="text-2xl font-mono block text-zinc-950 dark:text-white mt-0.5">{latestUpdate.progress_percentage}%</span>
                   </div>
                 </div>
 
@@ -125,7 +125,7 @@ export function ConstructionClient({
                   {latestUpdate.attendees && (
                     <div className="space-y-1.5 pt-1">
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Revisado en obra por</span>
-                      <p className="text-zinc-650 dark:text-zinc-350 font-light text-[12px] leading-relaxed">
+                      <p className="text-zinc-650 dark:text-zinc-350 text-[12px] leading-relaxed">
                         {gremiosDeAsistentes(latestUpdate.attendees).join(" · ")}
                       </p>
                     </div>
@@ -135,7 +135,7 @@ export function ConstructionClient({
                   {latestUpdate.summary && (
                     <div className="space-y-1.5 pt-1">
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Lo importante de esta semana</span>
-                      <p className="text-zinc-650 dark:text-zinc-350 font-light text-[12px] leading-relaxed">
+                      <p className="text-zinc-650 dark:text-zinc-350 text-[12px] leading-relaxed">
                         {latestUpdate.summary}
                       </p>
                     </div>
@@ -147,8 +147,8 @@ export function ConstructionClient({
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold flex items-center gap-1.5">
                         <Wrench className="h-4 w-4 text-zinc-600 dark:text-zinc-400" /> Trabajos realizados
                       </span>
-                      <p className="text-zinc-600 dark:text-zinc-350 font-sans font-light leading-relaxed pl-5.5">
-                        🔧 {latestUpdate.current_work}
+                      <p className="text-zinc-600 dark:text-zinc-350 font-sans leading-relaxed pl-5.5">
+                        {latestUpdate.current_work}
                       </p>
                     </div>
                   )}
@@ -157,9 +157,9 @@ export function ConstructionClient({
                   {latestUpdate.issues && (
                     <div className="space-y-2 pt-4 border-t border-zinc-150/40 dark:border-zinc-800/40">
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold flex items-center gap-1.5">
-                        <AlertTriangle className="h-4 w-4 text-amber-500/80" /> Incidencias detectadas
+                        <AlertTriangle className="h-4 w-4 text-zinc-500" /> Incidencias detectadas
                       </span>
-                      <div className="p-3.5 bg-amber-500/[0.03] dark:bg-amber-500/5 border border-amber-500/10 rounded-2xl text-[11px] leading-relaxed text-zinc-650 dark:text-zinc-350 font-light">
+                      <div className="p-3.5 bg-amber-500/[0.03] dark:bg-amber-500/5 border border-amber-500/10 rounded-2xl text-[11px] leading-relaxed text-zinc-650 dark:text-zinc-350">
                         {latestUpdate.issues}
                       </div>
                     </div>
@@ -169,10 +169,10 @@ export function ConstructionClient({
                   {latestUpdate.decisions_needed && (
                     <div className="space-y-2 pt-4 border-t border-zinc-150/40 dark:border-zinc-800/40">
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold flex items-center gap-1.5">
-                        <HelpCircle className="h-4 w-4 text-amber-500" /> Decisiones necesarias
+                        <HelpCircle className="h-4 w-4 text-zinc-500" /> Decisiones necesarias
                       </span>
                       <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 rounded-2xl text-[11px] pl-4 text-zinc-700 dark:text-zinc-350 font-medium">
-                        💡 {latestUpdate.decisions_needed}
+                        {latestUpdate.decisions_needed}
                       </div>
                     </div>
                   )}
@@ -183,8 +183,8 @@ export function ConstructionClient({
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold flex items-center gap-1.5">
                         <Footprints className="h-4 w-4 text-zinc-600 dark:text-zinc-450" /> Próximos pasos
                       </span>
-                      <p className="text-zinc-600 dark:text-zinc-350 font-sans font-light leading-relaxed pl-5.5">
-                        ➡️ {latestUpdate.next_steps}
+                      <p className="text-zinc-600 dark:text-zinc-350 font-sans leading-relaxed pl-5.5">
+                        {latestUpdate.next_steps}
                       </p>
                     </div>
                   )}
@@ -205,7 +205,7 @@ export function ConstructionClient({
                           {updatePhotos.length > 4 && (
                             <button
                               onClick={() => toggleGallery(latestUpdate.id)}
-                              className="font-mono text-[9px] text-amber-600 hover:text-amber-500 font-bold transition-colors uppercase tracking-wider"
+                              className="font-mono text-[9px] text-zinc-800 hover:text-zinc-950 font-bold transition-colors uppercase tracking-wider"
                             >
                               {isExpanded ? "Ver menos" : `Ver todas (+${updatePhotos.length - 4})`}
                             </button>
@@ -277,7 +277,7 @@ export function ConstructionClient({
 
                           {/* Avance */}
                           <div className="flex items-center gap-2 font-mono text-[9px] bg-zinc-50 dark:bg-zinc-950 px-2.5 py-1 rounded-full border border-zinc-200/55 dark:border-zinc-850 self-start sm:self-auto">
-                            <span className="text-zinc-600 dark:text-zinc-400 uppercase font-light">AVANCE:</span>
+                            <span className="text-zinc-600 dark:text-zinc-400 uppercase">AVANCE:</span>
                             <span className="font-bold text-zinc-750 dark:text-zinc-200">{update.progress_percentage}%</span>
                           </div>
                         </CardHeader>
@@ -288,7 +288,7 @@ export function ConstructionClient({
                           {update.attendees && (
                             <div className="space-y-1">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Revisado en obra por</span>
-                              <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed font-light text-[11px]">{gremiosDeAsistentes(update.attendees).join(" · ")}</p>
+                              <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed text-[11px]">{gremiosDeAsistentes(update.attendees).join(" · ")}</p>
                             </div>
                           )}
 
@@ -296,7 +296,7 @@ export function ConstructionClient({
                           {update.summary && (
                             <div className="space-y-1">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Lo importante de esta semana</span>
-                              <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed font-light text-[11px]">{update.summary}</p>
+                              <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed text-[11px]">{update.summary}</p>
                             </div>
                           )}
 
@@ -304,8 +304,8 @@ export function ConstructionClient({
                           {update.current_work && (
                             <div className="space-y-1 border-t border-zinc-100/60 dark:border-zinc-800/20 pt-3">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Trabajos realizados</span>
-                              <p className="text-zinc-650 dark:text-zinc-400 font-light leading-relaxed pl-1">
-                                🔧 {update.current_work}
+                              <p className="text-zinc-650 dark:text-zinc-400 leading-relaxed pl-1">
+                                {update.current_work}
                               </p>
                             </div>
                           )}
@@ -314,10 +314,10 @@ export function ConstructionClient({
                           {update.issues && (
                             <div className="p-3 bg-zinc-50 dark:bg-zinc-950/40 rounded-xl space-y-1 border border-zinc-150/40 dark:border-zinc-850">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold flex items-center gap-1">
-                                <AlertTriangle className="h-3 w-3 text-amber-500/70" />
+                                <AlertTriangle className="h-3 w-3 text-zinc-500" />
                                 Incidencias detectadas
                               </span>
-                              <p className="text-zinc-600 dark:text-zinc-300 font-light italic pl-1 leading-relaxed text-[10.5px]">
+                              <p className="text-zinc-600 dark:text-zinc-300 italic pl-1 leading-relaxed text-[10.5px]">
                                 {update.issues}
                               </p>
                             </div>
@@ -326,9 +326,9 @@ export function ConstructionClient({
                           {/* Decisiones requeridas */}
                           {update.decisions_needed && (
                             <div className="p-3 bg-amber-500/[0.02] border border-amber-500/10 rounded-xl space-y-1">
-                              <span className="font-mono text-[10px] text-amber-600 dark:text-amber-400 uppercase tracking-widest block font-bold">Decisiones necesarias</span>
+                              <span className="font-mono text-[10px] text-zinc-800 dark:text-amber-400 uppercase tracking-widest block font-bold">Decisiones necesarias</span>
                               <p className="text-zinc-650 dark:text-zinc-350 font-medium pl-1 leading-relaxed text-[10.5px]">
-                                💡 {update.decisions_needed}
+                                {update.decisions_needed}
                               </p>
                             </div>
                           )}
@@ -337,8 +337,8 @@ export function ConstructionClient({
                           {update.next_steps && (
                             <div className="space-y-1 border-t border-zinc-150/40 dark:border-zinc-800/20 pt-3">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Próximos pasos</span>
-                              <p className="text-zinc-650 dark:text-zinc-450 font-light mt-0.5 pl-1">
-                                ➡️ {update.next_steps}
+                              <p className="text-zinc-650 dark:text-zinc-450 mt-0.5 pl-1">
+                                {update.next_steps}
                               </p>
                             </div>
                           )}
@@ -351,7 +351,7 @@ export function ConstructionClient({
                                 {updatePhotos.length > 3 && (
                                   <button
                                     onClick={() => toggleGallery(update.id)}
-                                    className="font-mono text-[10px] text-zinc-455 hover:text-amber-500 font-bold transition-colors uppercase tracking-wider"
+                                    className="font-mono text-[10px] text-zinc-455 hover:text-zinc-950 font-bold transition-colors uppercase tracking-wider"
                                   >
                                     {isExpanded ? "Ver menos" : `Ver todas (+${updatePhotos.length - 3})`}
                                   </button>
@@ -433,7 +433,7 @@ export function ConstructionClient({
                 </span>
                 <span className="text-[10px] text-zinc-400">Subida el {formatDateEs(lightboxPhoto.created_at)}</span>
               </div>
-              <p className="text-white text-[11px] font-sans font-light leading-relaxed pt-1.5">
+              <p className="text-white text-[11px] font-sans leading-relaxed pt-1.5">
                 {lightboxPhoto.caption || "Sin pie de foto descriptivo."}
               </p>
             </div>

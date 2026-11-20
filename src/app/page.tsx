@@ -10,18 +10,18 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-70 pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/70">
+      <header className="dark sticky top-0 z-50 w-full bg-[var(--nav-glass)] text-whitesmoke backdrop-blur-[10px]">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <BrandLogo href="/" className="h-7 sm:h-8" />
-            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-800 hidden sm:block" />
-            <span className="text-xs font-light uppercase tracking-wider text-zinc-600 dark:text-zinc-500 hidden sm:block">
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <span className="text-xs uppercase tracking-wider text-zinc-300 hidden sm:block">
               Estudio de Arquitectura e Interiorismo
             </span>
           </div>
 
           <Link href="/login">
-            <Button variant="outline" className="font-mono text-xs uppercase tracking-wider border-zinc-300 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:hover:text-white transition-all duration-300">
+            <Button variant="outline" className="font-mono text-xs uppercase tracking-wider border-white/25 bg-transparent text-whitesmoke hover:bg-white/10 hover:text-white dark:border-white/25 dark:bg-transparent dark:hover:bg-white/10 dark:hover:text-white">
               Portal Clientes <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>
           </Link>
@@ -41,13 +41,13 @@ export default function Home() {
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight text-zinc-900 dark:text-white leading-[1.1] font-heading">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl text-zinc-900 dark:text-white leading-[1.1] font-heading">
                 Despejamos la <span className="font-semibold text-zinc-950 dark:text-white block sm:inline">complejidad,</span>
                 <br className="hidden sm:inline" />
                 revelamos tu <span className="font-medium text-amber-500">espacio.</span>
               </h1>
 
-              <p className="text-zinc-600 dark:text-zinc-400 text-lg leading-relaxed max-w-xl font-light">
+              <p className="text-zinc-600 dark:text-zinc-400 text-lg leading-relaxed max-w-xl">
                 Crear tu casa ideal debería ser emocionante, no abrumador. En <strong>Despeja la X</strong> resolvemos todas las variables técnicas y estéticas para ofrecerte un proceso de diseño y construcción totalmente despejado, transparente y bajo control.
               </p>
 
@@ -86,7 +86,7 @@ export default function Home() {
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-zinc-600 dark:text-zinc-500 font-light">Progreso general</span>
+                      <span className="text-zinc-600 dark:text-zinc-500">Progreso general</span>
                       <span className="font-mono font-medium">62%</span>
                     </div>
                     <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
@@ -111,7 +111,7 @@ export default function Home() {
                     <div className="flex items-start space-x-3 text-xs opacity-50">
                       <div className="h-4 w-4 rounded-full border border-zinc-300 dark:border-zinc-700 flex items-center justify-center shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-light">Instalación de carpintería exterior</p>
+                        <p className="">Instalación de carpintería exterior</p>
                         <p className="text-[10px] font-mono">Estimado: 08 Junio</p>
                       </div>
                     </div>
@@ -119,7 +119,7 @@ export default function Home() {
 
                   {/* Simulación del estado despejado */}
                   <div className="bg-zinc-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
-                    <span className="text-zinc-600 dark:text-zinc-500 font-light flex items-center gap-1.5">
+                    <span className="text-zinc-600 dark:text-zinc-500 flex items-center gap-1.5">
                       <Eye className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
                       Seguimiento de obra
                     </span>
@@ -138,7 +138,7 @@ export default function Home() {
               <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-600 dark:text-zinc-500 mb-3">
                 Un único espacio para todo
               </h2>
-              <p className="text-2xl font-light text-zinc-900 dark:text-white tracking-tight">
+              <p className="text-2xl text-zinc-900 dark:text-white tracking-tight">
                 El portal de clientes que reúne y clarifica el desarrollo de tu hogar de principio a fin.
               </p>
             </div>
@@ -150,7 +150,7 @@ export default function Home() {
                   <HardHat className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium text-base text-zinc-900 dark:text-white mb-2">Seguimiento Semanal</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-xs font-light leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed">
                   Galería de fotos y reporte de avances técnicos de la obra para que sepas exactamente qué pasa cada semana.
                 </p>
               </div>
@@ -161,7 +161,7 @@ export default function Home() {
                   <LayoutGrid className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium text-base text-zinc-900 dark:text-white mb-2">Toma de Decisiones</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-xs font-light leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed">
                   Vota y decide sobre materiales, acabados, mobiliario y opciones de diseño desde cualquier lugar.
                 </p>
               </div>
@@ -172,7 +172,7 @@ export default function Home() {
                   <FileText className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium text-base text-zinc-900 dark:text-white mb-2">Documentos y Planos</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-xs font-light leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed">
                   Acceso inmediato a los últimos planos validados, presupuestos, contratos y licencias sin perderte en correos.
                 </p>
               </div>
@@ -183,7 +183,7 @@ export default function Home() {
                   <CalendarRange className="h-5 w-5" />
                 </div>
                 <h3 className="font-medium text-base text-zinc-900 dark:text-white mb-2">Citas y Reuniones</h3>
-                <p className="text-zinc-600 dark:text-zinc-400 text-xs font-light leading-relaxed">
+                <p className="text-zinc-600 dark:text-zinc-400 text-xs leading-relaxed">
                   Historial de actas de reunión, acuerdos tomados y agenda de próximas visitas técnicas de obra.
                 </p>
               </div>
@@ -197,7 +197,7 @@ export default function Home() {
         <div className="container mx-auto px-6 max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start space-y-2">
             <BrandLogo className="h-6" />
-            <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-light">
+            <p className="text-[10px] text-zinc-600 dark:text-zinc-400">
               © {new Date().getFullYear()} Despeja la X. Todos los derechos reservados.
             </p>
           </div>
@@ -209,7 +209,7 @@ export default function Home() {
               Proyectos
             </a>
             <span className="text-zinc-300 dark:text-zinc-800">|</span>
-            <span className="text-zinc-600 dark:text-zinc-400 font-light">
+            <span className="text-zinc-600 dark:text-zinc-400">
               Desarrollado con precisión
             </span>
           </div>

@@ -73,13 +73,13 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
       {/* Cabecera y Microcopy */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <Layers className="h-3.5 w-3.5 text-amber-500" />
+          <Layers className="h-3.5 w-3.5 text-zinc-500" />
           <span>Fases de tu proyecto</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           El camino
         </h1>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
           Desde la primera idea en el papel hasta la entrega de tus llaves. Aquí puedes visualizar cronológicamente el estado de cada fase técnica, los acuerdos tomados y los documentos oficiales.
         </p>
       </div>
@@ -105,7 +105,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
             badgeClass = "bg-zinc-500/10 text-zinc-600 dark:bg-zinc-500/5 dark:text-zinc-400/90 border-zinc-500/20 font-bold";
           } else if (isCurrent) {
             // Fase actual destacada visualmente
-            ringClass = "bg-amber-500 border-white dark:border-zinc-950 ring-amber-500/20 animate-pulse-slow";
+            ringClass = "bg-amber-500 border-white dark:border-zinc-950 ring-amber-500/20";
             cardClass = "border-amber-500/30 bg-white/95 dark:border-amber-500/20 dark:bg-zinc-900/80 shadow-md ring-1 ring-amber-500/10 scale-[1.005] translate-x-0.5";
             badgeClass = "bg-amber-600 text-white dark:bg-amber-500/25 dark:text-amber-300 font-bold border-transparent";
             phaseIndicator = "Fase Activa";
@@ -138,7 +138,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                         {phase.phase_number}
                       </span>
                       {phaseIndicator && (
-                        <span className="font-mono text-[10px] bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider animate-pulse-slow">
+                        <span className="font-mono text-[10px] bg-amber-500/10 text-zinc-800 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
                           {phaseIndicator}
                         </span>
                       )}
@@ -151,7 +151,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                         <Calendar className="h-3 w-3 shrink-0 text-zinc-500" />
                         <span>Fecha objetivo: {formatDateEs(phase.target_end_date)}</span>
                         {delay && !delay.closed && (
-                          <span className="font-semibold text-amber-600 dark:text-amber-400">
+                          <span className="font-semibold text-zinc-800 dark:text-amber-400">
                             · {delay.days === 1 ? "1 día" : `${delay.days} días`} de retraso
                           </span>
                         )}
@@ -165,18 +165,18 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
 
                 <CardContent className="pt-4 text-xs space-y-4">
                   {/* Descripción de la Fase */}
-                  <p className="text-zinc-650 dark:text-zinc-400 leading-relaxed font-light text-[11px]">
+                  <p className="text-zinc-650 dark:text-zinc-400 leading-relaxed text-[11px]">
                     {phase.description}
                   </p>
 
                   {/* Próximos pasos específicos si es la fase activa */}
                   {isCurrent && (
                     <div className="p-3.5 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 rounded-2xl space-y-2">
-                      <div className="flex items-center space-x-1.5 text-amber-600 dark:text-amber-400 font-bold font-mono text-[9px] uppercase tracking-wider">
+                      <div className="flex items-center space-x-1.5 text-zinc-800 dark:text-amber-400 font-bold font-mono text-[9px] uppercase tracking-wider">
                         <Sparkles className="h-3.5 w-3.5" />
                         <span>Lo que estamos haciendo ahora</span>
                       </div>
-                      <p className="text-[11px] text-zinc-650 dark:text-zinc-350 leading-relaxed font-light">
+                      <p className="text-[11px] text-zinc-650 dark:text-zinc-350 leading-relaxed">
                         Estamos centrados en concluir esta fase para poder pasar a la siguiente etapa. Puedes seguir el avance diario en el <strong className="font-semibold text-zinc-800 dark:text-zinc-200">Diario de Obra</strong> o revisar los planos vinculados a continuación.
                       </p>
                     </div>
@@ -190,7 +190,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                       <div className="space-y-2">
                         <span className="text-zinc-600 dark:text-zinc-400 uppercase tracking-widest font-bold block">DOCUMENTOS ({phaseDocs.length})</span>
                         {phaseDocs.length === 0 ? (
-                          <span className="text-zinc-600 dark:text-zinc-400 italic font-light block">Sin documentos enlazados</span>
+                          <span className="text-zinc-600 dark:text-zinc-400 italic block">Sin documentos enlazados</span>
                         ) : (
                           <div className="space-y-1.5 font-sans">
                             {phaseDocs.map(doc => (
@@ -198,13 +198,13 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                                 key={doc.id}
                                 href={doc.file_url}
                                 target="_blank"
-                                className="flex items-center justify-between text-zinc-700 hover:text-amber-500 dark:text-zinc-400 dark:hover:text-amber-400 border border-zinc-200/40 dark:border-zinc-800 p-2 rounded-xl bg-white/40 dark:bg-zinc-950/20 transition-colors"
+                                className="flex items-center justify-between text-zinc-700 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-amber-400 border border-zinc-200/40 dark:border-zinc-800 p-2 rounded-xl bg-white/40 dark:bg-zinc-950/20 transition-colors"
                               >
                                 <div className="overflow-hidden pr-2">
                                   <span className="font-semibold block truncate text-[11px]">{doc.title}</span>
                                   <span className="text-[9px] text-zinc-600 dark:text-zinc-400 font-mono">{doc.version}{doc.file_size ? ` • ${formatBytes(doc.file_size)}` : ""}</span>
                                 </div>
-                                <Download className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400 hover:text-amber-500" />
+                                <Download className="h-3.5 w-3.5 shrink-0 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950" />
                               </a>
                             ))}
                           </div>
@@ -216,7 +216,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                         <span className="text-zinc-600 dark:text-zinc-400 uppercase tracking-widest font-bold block">TUS ELECCIONES ({phaseDecsPending.length + phaseDecsValidated.length})</span>
 
                         {(phaseDecsPending.length === 0 && phaseDecsValidated.length === 0) ? (
-                          <span className="text-zinc-600 dark:text-zinc-400 italic font-light block">Sin decisiones requeridas</span>
+                          <span className="text-zinc-600 dark:text-zinc-400 italic block">Sin decisiones requeridas</span>
                         ) : (
                           <div className="space-y-1.5">
                             {/* Decisiones Pendientes */}
@@ -227,13 +227,13 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                                 className="flex items-start p-2 border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl hover:border-amber-500/40 transition-colors group"
                               >
                                 <div className="overflow-hidden flex-grow pr-1.5 font-sans">
-                                  <span className="text-[9px] font-mono text-amber-600 dark:text-amber-400 uppercase font-bold block">TE TOCA DECIDIR</span>
+                                  <span className="text-[9px] font-mono text-zinc-800 dark:text-amber-400 uppercase font-bold block">TE TOCA DECIDIR</span>
                                   <span className="font-bold text-zinc-800 dark:text-zinc-200 block truncate text-[11px] mt-0.5">{dec.title}</span>
                                   {dec.due_date && (
-                                    <span className="text-[9px] text-amber-500 font-mono block mt-0.5">Antes del {formatDateEs(dec.due_date)}</span>
+                                    <span className="text-[9px] text-zinc-800 font-mono block mt-0.5">Antes del {formatDateEs(dec.due_date)}</span>
                                   )}
                                 </div>
-                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-amber-500 mt-0.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-zinc-500 mt-0.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                               </Link>
                             ))}
 
@@ -246,7 +246,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                                 <Check className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-500 bg-zinc-500/10 p-0.5 rounded-full shrink-0 mt-0.5" />
                                 <div className="overflow-hidden">
                                   <span className="font-semibold text-zinc-700 dark:text-zinc-350 block truncate text-[10px]">{dec.title}</span>
-                                  <span className="text-[9px] text-zinc-600 dark:text-zinc-400 font-light block mt-0.5 truncate">Elegiste: <strong className="font-semibold text-zinc-600 dark:text-zinc-300">{dec.client_response}</strong></span>
+                                  <span className="text-[9px] text-zinc-600 dark:text-zinc-400 block mt-0.5 truncate">Elegiste: <strong className="font-semibold text-zinc-600 dark:text-zinc-300">{dec.client_response}</strong></span>
                                 </div>
                               </div>
                             ))}
@@ -258,7 +258,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
                       <div className="space-y-2">
                         <span className="text-zinc-600 dark:text-zinc-400 uppercase tracking-widest font-bold block">CITAS Y REUNIONES ({phaseMeets.length})</span>
                         {phaseMeets.length === 0 ? (
-                          <span className="text-zinc-600 dark:text-zinc-400 italic font-light block">Ninguna visita en esta fase</span>
+                          <span className="text-zinc-600 dark:text-zinc-400 italic block">Ninguna visita en esta fase</span>
                         ) : (
                           <div className="space-y-1.5 font-sans">
                             {phaseMeets.map(meet => (

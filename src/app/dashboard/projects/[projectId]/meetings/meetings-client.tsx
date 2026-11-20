@@ -84,13 +84,13 @@ export function MeetingsClient({
       {/* Cabecera y Introducción */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <Calendar className="h-3.5 w-3.5 text-amber-500" />
+          <Calendar className="h-3.5 w-3.5 text-zinc-500" />
           <span>Reuniones y visitas de obra</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           Reuniones y actas
         </h1>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
           Aquí recopilamos las actas de visitas técnicas y reuniones presenciales, detallando los acuerdos adoptados, las tareas de seguimiento pendientes para el estudio o para ti, y los próximos pasos de la construcción de tu hogar.
         </p>
       </div>
@@ -98,8 +98,8 @@ export function MeetingsClient({
       {/* SOLICITUDES DEL CLIENTE */}
       <Card id="escribir" className="border border-zinc-200/70 dark:border-zinc-850 bg-white/70 dark:bg-zinc-900/60 rounded-3xl shadow-xs overflow-hidden">
         <CardHeader className="py-5 border-b border-zinc-100 dark:border-zinc-850">
-          <CardTitle className="text-base font-light text-zinc-900 dark:text-white flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500" /> ¿Quieres tratar algo en la próxima reunión?
+          <CardTitle className="text-base text-zinc-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-zinc-500" /> ¿Quieres tratar algo en la próxima reunión?
           </CardTitle>
           <CardDescription className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-1">
             Pide una revisión o propón un tema. Queda registrado aquí para que no se pierda, sin WhatsApp ni correos sueltos.
@@ -124,7 +124,7 @@ export function MeetingsClient({
             <Button onClick={submitRequest} disabled={isSubmitting || !reqMessage.trim()} className="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-medium text-xs rounded-xl">
               {isSubmitting ? "Enviando…" : "Enviar solicitud"}
             </Button>
-            {reqFeedback && <span className="text-[11px] text-amber-600 dark:text-amber-400">{reqFeedback}</span>}
+            {reqFeedback && <span className="text-[11px] text-zinc-800 dark:text-amber-400">{reqFeedback}</span>}
           </div>
 
           {localRequests.length > 0 && (
@@ -134,7 +134,7 @@ export function MeetingsClient({
                 <div key={r.id} className="flex items-start gap-3 rounded-2xl border border-zinc-150/60 dark:border-zinc-850 bg-white/50 dark:bg-zinc-950/40 px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">{r.category}</div>
-                    <p className="text-[12px] text-zinc-700 dark:text-zinc-300 font-light leading-relaxed mt-0.5">{r.message}</p>
+                    <p className="text-[12px] text-zinc-700 dark:text-zinc-300 leading-relaxed mt-0.5">{r.message}</p>
                   </div>
                   <span className={r.status === "Atendida"
                     ? "shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-100"
@@ -160,7 +160,7 @@ export function MeetingsClient({
           {latestMeeting && (
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-4 w-4 text-amber-500" />
+                <Sparkles className="h-4 w-4 text-zinc-500" />
                 <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-600 dark:text-zinc-450 font-bold">Última reunión</h2>
               </div>
 
@@ -169,7 +169,7 @@ export function MeetingsClient({
                 <div className="px-6 py-5 border-b border-zinc-150/40 dark:border-zinc-800/50 bg-amber-500/[0.04] dark:bg-zinc-900/60 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-[9px] bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+                      <span className="font-mono text-[9px] bg-amber-500/10 text-zinc-800 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
                         {(() => {
                           const phase = phases.find(p => p.id === latestMeeting.phase_id);
                           return phase ? `${phase.phase_number} • ${phase.name}` : "Reunión General";
@@ -194,7 +194,7 @@ export function MeetingsClient({
                   {latestMeeting.summary && (
                     <div className="space-y-1.5">
                       <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Resumen de la visita</span>
-                      <p className="text-zinc-650 dark:text-zinc-350 font-light text-[12px] leading-relaxed">
+                      <p className="text-zinc-650 dark:text-zinc-350 text-[12px] leading-relaxed">
                         {latestMeeting.summary}
                       </p>
                     </div>
@@ -226,7 +226,7 @@ export function MeetingsClient({
                         <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
                         <span>Lo que se ha decidido</span>
                       </div>
-                      <p className="text-zinc-650 dark:text-zinc-300 font-light italic pl-6 text-[11px] leading-relaxed">
+                      <p className="text-zinc-650 dark:text-zinc-300 italic pl-6 text-[11px] leading-relaxed">
                         &quot;{latestMeeting.decisions_summary}&quot;
                       </p>
                     </div>
@@ -240,10 +240,10 @@ export function MeetingsClient({
                         {/* Tareas del Cliente */}
                         <div className="p-3.5 bg-white dark:bg-zinc-950/40 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 space-y-2 flex flex-col justify-between">
                           <div className="space-y-1.5">
-                            <span className="font-mono text-[9px] text-amber-600 dark:text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1">
+                            <span className="font-mono text-[9px] text-zinc-800 dark:text-amber-400 uppercase tracking-wider font-bold flex items-center gap-1">
                               <User className="h-3.5 w-3.5" /> Tareas asignadas a ti:
                             </span>
-                            <p className="text-zinc-600 dark:text-zinc-350 font-sans font-light leading-relaxed pl-1">
+                            <p className="text-zinc-600 dark:text-zinc-350 font-sans leading-relaxed pl-1">
                               {latestMeeting.client_tasks || "Ninguna tarea pendiente asignada."}
                             </p>
                           </div>
@@ -255,7 +255,7 @@ export function MeetingsClient({
                             <span className="font-mono text-[9px] text-zinc-600 dark:text-zinc-400 uppercase tracking-wider font-bold flex items-center gap-1">
                               <Wrench className="h-3.5 w-3.5" /> Trabajos del estudio DLX:
                             </span>
-                            <p className="text-zinc-600 dark:text-zinc-350 font-sans font-light leading-relaxed pl-1">
+                            <p className="text-zinc-600 dark:text-zinc-350 font-sans leading-relaxed pl-1">
                               {latestMeeting.studio_tasks || "Ningún trabajo pendiente asignado."}
                             </p>
                           </div>
@@ -271,7 +271,7 @@ export function MeetingsClient({
                         <Footprints className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                         <span>Próximos pasos</span>
                       </div>
-                      <p className="text-zinc-650 dark:text-zinc-350 font-light pl-5.5">
+                      <p className="text-zinc-650 dark:text-zinc-350 pl-5.5">
                         {latestMeeting.next_steps}
                       </p>
                     </div>
@@ -298,7 +298,7 @@ export function MeetingsClient({
                               <a
                                 href={doc.file_url}
                                 target="_blank"
-                                className="flex items-center gap-1 text-[10px] font-mono text-zinc-600 hover:text-amber-500 font-bold transition-colors shrink-0 ml-3"
+                                className="flex items-center gap-1 text-[10px] font-mono text-zinc-600 hover:text-zinc-950 font-bold transition-colors shrink-0 ml-3"
                               >
                                 Descargar <Download className="h-3.5 w-3.5" />
                               </a>
@@ -353,7 +353,7 @@ export function MeetingsClient({
 
                         <CardContent className="p-5 space-y-4 text-xs">
                           {meet.summary && (
-                            <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed font-light text-[11px]">{meet.summary}</p>
+                            <p className="text-zinc-650 dark:text-zinc-450 leading-relaxed text-[11px]">{meet.summary}</p>
                           )}
 
                           {/* Fotos de la reunión */}
@@ -379,7 +379,7 @@ export function MeetingsClient({
                           {meet.decisions_summary && (
                             <div className="p-3 bg-zinc-50 dark:bg-zinc-950/40 rounded-xl space-y-1.5 border border-zinc-150/40 dark:border-zinc-800/50">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Lo que se ha decidido</span>
-                              <p className="text-zinc-600 dark:text-zinc-300 font-light italic pl-1 leading-relaxed text-[10.5px]">
+                              <p className="text-zinc-600 dark:text-zinc-300 italic pl-1 leading-relaxed text-[10.5px]">
                                 &quot;{meet.decisions_summary}&quot;
                               </p>
                             </div>
@@ -390,14 +390,14 @@ export function MeetingsClient({
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-zinc-150/40 dark:border-zinc-800/30 text-[10px] font-mono">
                               <div className="space-y-1">
                                 <span className="text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block font-bold">Tareas asignadas a ti:</span>
-                                <span className="text-zinc-700 dark:text-zinc-350 block font-sans font-light leading-relaxed">
-                                  👤 {meet.client_tasks || "Ninguna"}
+                                <span className="text-zinc-700 dark:text-zinc-350 block font-sans leading-relaxed">
+                                  {meet.client_tasks || "Ninguna"}
                                 </span>
                               </div>
                               <div className="space-y-1">
                                 <span className="text-zinc-600 dark:text-zinc-400 uppercase tracking-widest block font-bold">Trabajos del estudio:</span>
-                                <span className="text-zinc-700 dark:text-zinc-350 block font-sans font-light leading-relaxed">
-                                  🔧 {meet.studio_tasks || "Ninguno"}
+                                <span className="text-zinc-700 dark:text-zinc-350 block font-sans leading-relaxed">
+                                  {meet.studio_tasks || "Ninguno"}
                                 </span>
                               </div>
                             </div>
@@ -407,7 +407,7 @@ export function MeetingsClient({
                           {meet.next_steps && (
                             <div className="pt-2.5 border-t border-zinc-150/40 dark:border-zinc-800/30">
                               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Próximos pasos:</span>
-                              <p className="text-zinc-650 dark:text-zinc-450 font-light mt-0.5 pl-1">
+                              <p className="text-zinc-650 dark:text-zinc-450 mt-0.5 pl-1">
                                 {meet.next_steps}
                               </p>
                             </div>
@@ -430,7 +430,7 @@ export function MeetingsClient({
                                     <a
                                       href={doc.file_url}
                                       target="_blank"
-                                      className="flex items-center gap-1 text-[9.5px] font-mono text-zinc-650 hover:text-amber-500 font-bold transition-colors shrink-0 ml-3"
+                                      className="flex items-center gap-1 text-[9.5px] font-mono text-zinc-650 hover:text-zinc-950 font-bold transition-colors shrink-0 ml-3"
                                     >
                                       Descargar <Download className="h-3 w-3" />
                                     </a>

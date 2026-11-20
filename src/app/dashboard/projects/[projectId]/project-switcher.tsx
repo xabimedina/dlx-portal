@@ -40,17 +40,17 @@ export function ProjectSwitcher({
       <select
         value={currentId}
         onChange={(e) => handleChange(e.target.value)}
-        className="w-full min-w-0 cursor-pointer appearance-none truncate rounded-xl border border-transparent bg-transparent py-1 pl-1 pr-7 font-heading text-sm font-medium text-zinc-900 hover:border-zinc-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50 dark:text-white dark:hover:border-zinc-800 sm:max-w-xs sm:text-base"
+        className="w-full min-w-0 cursor-pointer appearance-none truncate rounded-xl border border-transparent bg-transparent py-1 pl-1 pr-7 font-heading text-sm font-medium text-zinc-900 hover:border-zinc-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50 dark:text-white dark:hover:border-white/25 sm:max-w-xs sm:text-base"
       >
         {projects.map((p) => (
-          <option key={p.id} value={p.id}>
+          <option key={p.id} value={p.id} className="text-zinc-900">
             {p.name}
             {p.status && p.status !== "Activo" ? ` (${p.status})` : ""}
           </option>
         ))}
       </select>
       <ChevronsUpDown
-        className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500"
+        className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-300"
         aria-hidden
       />
     </label>

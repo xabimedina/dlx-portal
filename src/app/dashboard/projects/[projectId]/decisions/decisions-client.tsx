@@ -113,10 +113,10 @@ export function DecisionsClient({
       {/* Cabecera y Microcopy */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <CheckSquare className="h-3.5 w-3.5 text-amber-500" />
+          <CheckSquare className="h-3.5 w-3.5 text-zinc-500" />
           <span>Toma de decisiones</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           Decisiones
         </h1>
         <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
@@ -175,16 +175,16 @@ export function DecisionsClient({
 
             // Estilo de Badges de Estado
             let stateBadgeClass = "bg-zinc-100 text-zinc-650 dark:text-zinc-550 border-zinc-200";
-            if (isPendingVote) stateBadgeClass = "bg-amber-500/10 text-amber-600 border-amber-500/25";
-            if (isUnderReview) stateBadgeClass = "bg-amber-500/10 text-amber-600 border-amber-500/25";
+            if (isPendingVote) stateBadgeClass = "bg-saffron-100 text-zinc-800 border-amber-500";
+            if (isUnderReview) stateBadgeClass = "bg-saffron-100 text-zinc-800 border-amber-500";
             if (isValidated) stateBadgeClass = "bg-zinc-500/10 text-zinc-600 border-zinc-500/25 font-bold";
             if (isDiscarded) stateBadgeClass = "bg-zinc-150 text-zinc-600 dark:text-zinc-400 border-zinc-200 line-through";
             if (isModified) stateBadgeClass = "bg-zinc-500/10 text-zinc-600 border-zinc-500/25";
 
             // Estilo de Badges de Prioridad
             let priorityBadgeClass = "bg-zinc-100 text-zinc-600 dark:text-zinc-500 border-zinc-200";
-            if (decision.priority === "Urgente") priorityBadgeClass = "bg-amber-500/10 text-amber-500 font-bold border-amber-500/25 animate-pulse-slow";
-            if (decision.priority === "Alta") priorityBadgeClass = "bg-amber-500/10 text-amber-600 font-bold border-amber-500/25";
+            if (decision.priority === "Urgente") priorityBadgeClass = "bg-saffron-100 text-zinc-800 font-bold border-amber-500";
+            if (decision.priority === "Alta") priorityBadgeClass = "bg-saffron-100 text-zinc-800 font-bold border-amber-500";
 
             // Comentario escrito actualmente por el cliente en cliente
             const typedComment = clientComments[decision.id] || "";
@@ -231,7 +231,7 @@ export function DecisionsClient({
                   {/* Sugerencia dlx */}
                   {decision.studio_recommendation && !isDiscarded && (
                     <div className="p-3.5 bg-zinc-50 dark:bg-zinc-950/50 rounded-2xl border border-zinc-150/40 dark:border-zinc-800/40 text-xs flex items-start space-x-2.5">
-                      <Award className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" />
+                      <Award className="h-4.5 w-4.5 text-zinc-500 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-zinc-800 dark:text-zinc-200">Recomendación Técnica del Estudio DLX:</span>
                         <p className="text-zinc-700 dark:text-zinc-300 mt-0.5 leading-relaxed">{decision.studio_recommendation}</p>
@@ -273,7 +273,7 @@ export function DecisionsClient({
                         <a
                           href={linkedDoc.file_url}
                           target="_blank"
-                          className="flex items-center gap-1 text-[10px] font-mono text-zinc-650 hover:text-amber-500 font-bold transition-colors shrink-0 ml-3"
+                          className="flex items-center gap-1 text-[10px] font-mono text-zinc-650 hover:text-zinc-950 font-bold transition-colors shrink-0 ml-3"
                         >
                           Descargar <Download className="h-3 w-3" />
                         </a>
@@ -296,13 +296,13 @@ export function DecisionsClient({
                           </>
                         ) : (
                           <>
-                            <Clock className="h-3.5 w-3.5 text-amber-500 bg-amber-500/10 p-0.5 rounded-full" />
-                            <span className="text-amber-600 dark:text-amber-400">Petición de Revisión Enviada</span>
+                            <Clock className="h-3.5 w-3.5 text-zinc-500 bg-amber-500/10 p-0.5 rounded-full" />
+                            <span className="text-zinc-800 dark:text-amber-400">Petición de Revisión Enviada</span>
                           </>
                         )}
                       </div>
                       <div className="pl-5 space-y-1">
-                        <p className="text-zinc-700 dark:text-zinc-300 font-light italic">
+                        <p className="text-zinc-700 dark:text-zinc-300 italic">
                           &quot;{decision.client_response}&quot;
                         </p>
                         {decision.validated_at && (
@@ -339,7 +339,7 @@ export function DecisionsClient({
                         <span className="text-[10px] font-mono text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5 text-amber-400" />
                           {decision.due_date ? (
-                            <>Fecha sugerida de respuesta: <strong className="text-amber-500">{formatDateEs(decision.due_date)}</strong></>
+                            <>Fecha sugerida de respuesta: <strong className="text-zinc-800">{formatDateEs(decision.due_date)}</strong></>
                           ) : (
                             <>Sin fecha límite: respóndela cuando puedas</>
                           )}

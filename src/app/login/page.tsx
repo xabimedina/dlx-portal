@@ -88,10 +88,10 @@ export default function LoginPage() {
               <div className="flex justify-center mb-1">
                 <BrandLogo className="h-9" />
               </div>
-              <CardTitle className="text-xl font-light tracking-tight text-zinc-900 dark:text-white">
+              <CardTitle className="text-xl tracking-tight text-zinc-900 dark:text-white">
                 Acceso al Portal de Clientes
               </CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs font-light max-w-[280px] mx-auto">
+              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs max-w-[280px] mx-auto">
                 Sin contraseñas: escribe tu correo y te enviaremos un enlace de acceso seguro.
               </CardDescription>
             </CardHeader>
@@ -99,10 +99,10 @@ export default function LoginPage() {
             {linkSent ? (
               /* Estado: enlace enviado */
               <CardContent className="space-y-5 pt-8 pb-8 text-center">
-                <MailCheck className="h-12 w-12 text-emerald-500 bg-emerald-500/10 p-2.5 rounded-full mx-auto" />
+                <MailCheck className="h-12 w-12 text-zinc-800 bg-zinc-100 p-2.5 rounded-full mx-auto" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-zinc-900 dark:text-white">Revisa tu correo</p>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 font-light max-w-[300px] mx-auto leading-relaxed">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-[300px] mx-auto leading-relaxed">
                     Si <span className="font-mono">{email.trim().toLowerCase()}</span> está dado de alta,
                     te hemos enviado un enlace para entrar al portal. Ábrelo desde este dispositivo
                     para acceder directamente. Revisa también la carpeta de spam.
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     </div>
                   )}
                   {successMsg && (
-                    <div className="p-3 text-xs bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40 rounded-lg">
+                    <div className="p-3 text-xs bg-zinc-100  text-zinc-800  border border-zinc-200  rounded-lg">
                       {successMsg}
                     </div>
                   )}
@@ -148,7 +148,7 @@ export default function LoginPage() {
                         required
                       />
                     </div>
-                    <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-light">
+                    <p className="text-[10px] text-zinc-600 dark:text-zinc-400">
                       Usa el correo con el que el estudio te dio de alta en tu obra.
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export default function LoginPage() {
                     )}
                   </Button>
 
-                  <div className="text-[10px] text-zinc-600 dark:text-zinc-400 font-light text-center max-w-[280px]">
+                  <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center max-w-[280px]">
                     Si eres cliente y no consigues acceder, ponte en contacto con tu gestor en Despeja la X.
                   </div>
                 </CardFooter>

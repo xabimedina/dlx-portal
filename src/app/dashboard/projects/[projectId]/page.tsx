@@ -179,10 +179,10 @@ export default async function ProjectHomePage({ params }: PageProps) {
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">
           El camino de tu hogar
         </p>
-        <h1 className="mt-1.5 font-heading text-3xl font-light leading-tight text-zinc-900 dark:text-white sm:text-4xl">
+        <h1 className="display-portal mt-1.5 text-zinc-900 dark:text-white">
           {project.name}
         </h1>
-        <p className="mt-1 text-sm font-light text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
           {project.address} · {project.project_type}
         </p>
       </header>
@@ -200,7 +200,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   : "bg-zinc-800 dark:bg-zinc-200"
             }`}
           />
-          <h2 className="font-heading text-2xl font-light leading-snug text-zinc-900 dark:text-white sm:text-3xl">
+          <h2 className="font-heading text-2xl font-light normal-case tracking-[-0.015em] leading-snug text-zinc-900 dark:text-white sm:text-3xl">
             {headline.headline}
             {headline.detail && (
               headline.dependsOnYou ? (
@@ -247,7 +247,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   state === "complete"
                     ? "bg-zinc-800 dark:bg-zinc-200"
                     : p.id === activePhase?.id
-                      ? `bg-amber-500 ${isPaused ? "" : "motion-safe:animate-pulse"}`
+                      ? `bg-amber-500 ${isPaused ? "" : ""}`
                       : "bg-zinc-200 dark:bg-zinc-700";
                 return <span key={p.id} className={`h-1.5 flex-1 rounded-full ${cls}`} />;
               })}
@@ -257,7 +257,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
         )}
 
         {/* La fecha, siempre */}
-        <p className="mt-4 border-t border-zinc-100 pt-4 text-sm font-light text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
+        <p className="mt-4 border-t border-zinc-100 pt-4 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
           {delivery.kind === "delivered" ? (
             deliveryDateText ? (
               <>Entregada el <strong className="font-semibold text-zinc-900 dark:text-white">{deliveryDateText}</strong></>
@@ -278,7 +278,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
 
         {/* Hito reciente */}
         {milestone && (
-          <p className="mt-2 text-xs font-light text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
             {milestone.phaseNumber} completada {relativeDaysEs(milestone.endDate, today)}
           </p>
         )}
@@ -296,7 +296,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-heading text-lg font-medium text-zinc-900 dark:text-white">
             Te toca a ti
-            <span className="ml-2 text-sm font-light text-zinc-500 dark:text-zinc-400">
+            <span className="ml-2 text-sm text-zinc-500 dark:text-zinc-400">
               · {actions.length} {actions.length === 1 ? "asunto" : "asuntos"}
             </span>
           </h2>
@@ -311,13 +311,13 @@ export default async function ProjectHomePage({ params }: PageProps) {
         </div>
 
         {isPaused && actions.length > 0 && (
-          <p className="mt-2 text-xs font-light text-zinc-500 dark:text-zinc-400">
+          <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
             El proyecto está en pausa; puedes responder cuando quieras.
           </p>
         )}
 
         {actions.length === 0 ? (
-          <p className="mt-2 text-sm font-light text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             Nada pendiente por tu parte — te avisaremos aquí cuando haya algo.
           </p>
         ) : (
@@ -344,14 +344,14 @@ export default async function ProjectHomePage({ params }: PageProps) {
                       )}
                     </div>
                     {action.origin && (
-                      <p className="mt-0.5 text-xs font-light text-zinc-600 dark:text-zinc-400">
+                      <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
                         {action.origin}
                       </p>
                     )}
                   </div>
                   <Link
                     href={`${base}/${action.section}`}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-zinc-900 px-5 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-zinc-900 px-5 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
                   >
                     {action.verb} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                   </Link>
@@ -369,7 +369,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
             </h3>
             <ul className="mt-2 space-y-1.5">
               {studio.map((item) => (
-                <li key={item.key} className="text-xs font-light leading-relaxed text-zinc-500 dark:text-zinc-400">
+                <li key={item.key} className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                   {item.text}
                 </li>
               ))}
@@ -380,7 +380,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
         <div className="mt-5 border-t border-zinc-100 pt-4 dark:border-zinc-800">
           <Link
             href={`${base}/meetings`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-200 px-5 text-xs font-medium text-zinc-700 transition-colors hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-600"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 px-5 text-xs font-medium text-zinc-700 transition-colors hover:border-zinc-300 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-600"
           >
             Escribir al estudio
           </Link>
@@ -406,7 +406,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#3f3f46_1px,transparent_1px),linear-gradient(to_bottom,#3f3f46_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] opacity-40" />
                   <div className="absolute left-6 top-6 h-10 w-10 border-l-2 border-t-2 border-amber-500" />
                   <div className="absolute inset-0 flex items-end p-6">
-                    <span className="font-heading text-2xl font-light leading-snug text-white">
+                    <span className="font-heading text-2xl font-semibold uppercase leading-snug text-white">
                       {latestUpdate.title}
                     </span>
                   </div>
@@ -426,11 +426,11 @@ export default async function ProjectHomePage({ params }: PageProps) {
                     · {relativeDaysEs(latestUpdate.created_at, today)}
                   </span>
                 </p>
-                <h2 className="mt-1 font-heading text-xl font-light text-zinc-900 dark:text-white sm:text-2xl">
+                <h2 className="mt-1 font-heading text-xl font-semibold uppercase text-zinc-900 dark:text-white sm:text-2xl">
                   {latestUpdate.title}
                 </h2>
                 {isPaused && (
-                  <p className="mt-1 text-xs font-light text-zinc-500 dark:text-zinc-400">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Último parte antes de la pausa.
                   </p>
                 )}
@@ -470,12 +470,12 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   </h3>
                   <ExpandableText
                     text={latestUpdate.summary}
-                    className="mt-1.5 text-sm font-light leading-relaxed text-zinc-700 dark:text-zinc-300"
+                    className="mt-1.5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"
                   />
                   {workBullets.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {workBullets.map((bullet, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs font-light text-zinc-600 dark:text-zinc-400">
+                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-400">
                           <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-500" aria-hidden />
                           {bullet}
                         </li>
@@ -490,7 +490,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-amber-800 dark:text-amber-400">
                     Hubo un imprevisto
                   </h3>
-                  <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-700 dark:text-zinc-300">
+                  <p className="mt-1.5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                     {latestUpdate.issues}
                   </p>
                 </div>
@@ -501,7 +501,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
                     La semana que viene
                   </h3>
-                  <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-700 dark:text-zinc-300">
+                  <p className="mt-1.5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                     {latestUpdate.next_steps}
                   </p>
                 </div>
@@ -511,7 +511,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
               {(gremios.length > 0 || stripPhotos.length > 0) && (
                 <div className="space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
                   {gremios.length > 0 && (
-                    <p className="flex flex-wrap items-center gap-1.5 text-xs font-light text-zinc-600 dark:text-zinc-400">
+                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
                       En obra esta semana:
                       {gremios.map((g) => (
                         <span
@@ -560,16 +560,16 @@ export default async function ProjectHomePage({ params }: PageProps) {
                   · {relativeDaysEs(latestMeeting.meeting_date, today)}
                 </span>
               </p>
-              <h2 className="mt-1 font-heading text-xl font-light text-zinc-900 dark:text-white sm:text-2xl">
+              <h2 className="mt-1 font-heading text-xl font-semibold uppercase text-zinc-900 dark:text-white sm:text-2xl">
                 {latestMeeting.title}
               </h2>
               {project.current_stage === "construction" && (
-                <p className="mt-1 text-xs font-light text-zinc-500 dark:text-zinc-400">
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                   La obra arranca; aquí verás el parte de cada semana.
                 </p>
               )}
               {isPaused && (
-                <p className="mt-1 text-xs font-light text-zinc-500 dark:text-zinc-400">
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                   Última novedad antes de la pausa.
                 </p>
               )}
@@ -578,7 +578,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
             {latestMeeting.summary && (
               <ExpandableText
                 text={latestMeeting.summary}
-                className="text-sm font-light leading-relaxed text-zinc-700 dark:text-zinc-300"
+                className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"
               />
             )}
 
@@ -587,7 +587,7 @@ export default async function ProjectHomePage({ params }: PageProps) {
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
                   Lo que se decidió
                 </h3>
-                <p className="mt-1.5 text-sm font-light leading-relaxed text-zinc-700 dark:text-zinc-300">
+                <p className="mt-1.5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
                   {latestMeeting.decisions_summary}
                 </p>
               </div>
@@ -628,10 +628,10 @@ export default async function ProjectHomePage({ params }: PageProps) {
         ) : (
           // Degradación 3: ni partes ni actas
           <div className="p-6 sm:p-8">
-            <h2 className="font-heading text-lg font-light text-zinc-900 dark:text-white">
+            <h2 className="font-heading text-lg font-semibold uppercase text-zinc-900 dark:text-white">
               ¿Qué ha pasado?
             </h2>
-            <p className="mt-2 text-sm font-light text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
               Las novedades de tu proyecto aparecerán aquí tras la primera reunión.
             </p>
           </div>

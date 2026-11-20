@@ -92,18 +92,18 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 function renderClientNotice(profile: any, title: string, message: string) {
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/70">
+      <header className="dark sticky top-0 z-50 w-full bg-[var(--nav-glass)] text-whitesmoke backdrop-blur-[10px]">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <BrandLogo href="/dashboard" className="h-7 sm:h-8" />
-            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-800" />
-            <span className="text-[10px] font-mono uppercase tracking-widest bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 px-2 py-0.5 rounded">
+            <div className="h-4 w-px bg-white/20" />
+            <span className="text-[10px] font-mono uppercase tracking-widest bg-white/10 text-zinc-200 px-2 py-0.5 rounded">
               Portal Clientes
             </span>
           </div>
           <div className="flex items-center space-x-6">
-            <div className="hidden md:flex items-center space-x-2 text-xs text-zinc-600 dark:text-zinc-500">
-              <Mail className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
+            <div className="hidden md:flex items-center space-x-2 text-xs text-zinc-300">
+              <Mail className="h-3.5 w-3.5 text-zinc-300" />
               <span className="font-mono font-medium">{profile.email}</span>
             </div>
             <LogoutButton />
@@ -118,7 +118,7 @@ function renderClientNotice(profile: any, title: string, message: string) {
             <CardTitle className="text-lg font-bold text-zinc-900 dark:text-white">{title}</CardTitle>
           </CardHeader>
           <CardContent className="p-0 pt-1">
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light">{message}</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">{message}</p>
           </CardContent>
         </Card>
       </main>
@@ -126,7 +126,7 @@ function renderClientNotice(profile: any, title: string, message: string) {
       <footer className="border-t border-zinc-200/60 bg-white py-8 dark:border-zinc-800/60 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 z-10 text-xs">
         <div className="container mx-auto px-6 max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <BrandLogo className="h-6" />
-          <span className="text-zinc-600 dark:text-zinc-400 font-light text-[10px]">
+          <span className="text-zinc-600 dark:text-zinc-400 text-[10px]">
             © {new Date().getFullYear()} Despeja la X • Portal de Gestión Privada Seguro.
           </span>
         </div>
@@ -155,7 +155,7 @@ function renderAdminDashboard(
 
   const stats = [
     { title: "Proyectos Activos", value: String(activeProjectsCount), description: "En fase de diseño u obra", icon: Briefcase, color: "text-amber-500 bg-amber-500/10" },
-    { title: "Clientes Registrados", value: String(activeClientsCount), description: "Con accesos habilitados", icon: Users, color: "text-emerald-500 bg-emerald-500/10" },
+    { title: "Clientes Registrados", value: String(activeClientsCount), description: "Con accesos habilitados", icon: Users, color: "text-zinc-800 bg-zinc-100" },
     { title: "Decisiones Abiertas", value: String(openDecisionsCount), description: "Esperando respuesta", icon: CheckSquare, color: "text-blue-500 bg-blue-500/10" },
     { title: "Bitácoras Semanales", value: String(recentUpdatesCount), description: "Actualizaciones de obra", icon: Layers, color: "text-purple-500 bg-purple-500/10" },
   ];
@@ -166,19 +166,19 @@ function renderAdminDashboard(
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-50 pointer-events-none" />
 
       {/* Header Privado Admin */}
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/70">
+      <header className="dark sticky top-0 z-50 w-full bg-[var(--nav-glass)] text-whitesmoke backdrop-blur-[10px]">
         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <BrandLogo href="/dashboard" className="h-7 sm:h-8" />
-            <div className="h-4 w-px bg-zinc-300 dark:bg-zinc-800" />
-            <span className="text-[10px] font-mono uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-semibold">
+            <div className="h-4 w-px bg-white/20" />
+            <span className="text-[10px] font-mono uppercase tracking-widest bg-amber-500/10 text-zinc-800 dark:bg-amber-500/20 dark:text-amber-400 px-2 py-0.5 rounded font-semibold">
               Panel de Control (Admin)
             </span>
           </div>
 
           <div className="flex items-center space-x-6">
-            <div className="hidden md:flex items-center space-x-2 text-xs text-zinc-600 dark:text-zinc-500">
-              <Mail className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
+            <div className="hidden md:flex items-center space-x-2 text-xs text-zinc-300">
+              <Mail className="h-3.5 w-3.5 text-zinc-300" />
               <span className="font-mono font-medium">{profile.email}</span>
             </div>
             <LogoutButton />
@@ -190,7 +190,7 @@ function renderAdminDashboard(
       <main className="flex-grow container mx-auto px-6 py-10 relative z-10 max-w-6xl">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white mb-1.5">
+            <h1 className="display-portal text-zinc-900 dark:text-white mb-1.5">
               Estudio Despeja la X • <span className="font-heading italic text-zinc-600 dark:text-zinc-400">Gestión General</span>
             </h1>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 font-mono">
@@ -213,8 +213,8 @@ function renderAdminDashboard(
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-light text-zinc-950 dark:text-white font-mono">{stat.value}</div>
-                <p className="text-[10px] text-zinc-600 dark:text-zinc-400 mt-1 font-light">{stat.description}</p>
+                <div className="text-3xl text-zinc-950 dark:text-white font-mono">{stat.value}</div>
+                <p className="text-[10px] text-zinc-600 dark:text-zinc-400 mt-1">{stat.description}</p>
               </CardContent>
             </Card>
           ))}
@@ -222,7 +222,7 @@ function renderAdminDashboard(
 
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-light text-zinc-900 dark:text-white flex items-center gap-2">
+            <h2 className="text-lg font-semibold uppercase text-zinc-900 dark:text-white flex items-center gap-2">
               <Briefcase className="h-5 w-5 text-zinc-600 dark:text-zinc-400" /> Proyectos Activos en el Estudio
             </h2>
             <span className="text-xs font-mono text-zinc-600 dark:text-zinc-400">Total: {projects.length} proyectos</span>
@@ -230,7 +230,7 @@ function renderAdminDashboard(
 
           {projects.length === 0 ? (
             <Card className="border border-zinc-200/60 bg-white/80 p-8 text-center rounded-3xl">
-              <p className="text-zinc-600 dark:text-zinc-500 text-sm font-light">
+              <p className="text-zinc-600 dark:text-zinc-500 text-sm">
                 No hay proyectos registrados en el estudio. Da de alta clientes y obras
                 desde la consola de administración (DLX Admin → Obras).
               </p>
@@ -265,7 +265,7 @@ function renderAdminDashboard(
                       <CardContent className="space-y-4">
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-[11px]">
-                            <span className="text-zinc-600 dark:text-zinc-500 font-light">Progreso:</span>
+                            <span className="text-zinc-600 dark:text-zinc-500">Progreso:</span>
                             <span className="font-mono font-medium">{progress}%</span>
                           </div>
                           <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
@@ -294,7 +294,7 @@ function renderAdminDashboard(
       <footer className="border-t border-zinc-200/60 bg-white py-8 dark:border-zinc-800/60 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 transition-colors duration-300 z-10 text-xs">
         <div className="container mx-auto px-6 max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <BrandLogo className="h-6" />
-          <span className="text-zinc-600 dark:text-zinc-400 font-light text-[10px]">
+          <span className="text-zinc-600 dark:text-zinc-400 text-[10px]">
             © {new Date().getFullYear()} Despeja la X • Panel de Gestión de Estudio.
           </span>
         </div>

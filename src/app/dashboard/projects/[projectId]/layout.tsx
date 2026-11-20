@@ -56,14 +56,14 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-clip bg-zinc-50 transition-colors duration-300 dark:bg-zinc-950">
       {/* Fondo con retícula arquitectónica fina */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:5rem_5rem] opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#e6e7e4_1px,transparent_1px),linear-gradient(to_bottom,#e6e7e4_1px,transparent_1px)] bg-[size:5rem_5rem] opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,#43463f_1px,transparent_1px),linear-gradient(to_bottom,#43463f_1px,transparent_1px)]" />
 
       {/* Header persistente */}
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-200/50 bg-white/70 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-950/70">
+      <header className="dark sticky top-0 z-50 w-full bg-[var(--nav-glass)] text-whitesmoke backdrop-blur-[10px]">
         <div className="container mx-auto flex h-20 items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
             <BrandLogo href={`/dashboard/projects/${project.id}`} className="h-7 sm:h-8" />
-            <div className="h-4 w-px shrink-0 bg-zinc-300 dark:bg-zinc-800" />
+            <div className="h-4 w-px shrink-0 bg-white/20" />
             {clientProjects.length > 1 ? (
               <ProjectSwitcher projects={clientProjects} currentId={project.id} />
             ) : (
@@ -74,8 +74,8 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
           </div>
 
           <div className="flex shrink-0 items-center gap-3 sm:gap-5">
-            <div className="hidden items-center gap-2 text-xs text-zinc-600 dark:text-zinc-500 md:flex">
-              <Mail className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
+            <div className="hidden items-center gap-2 text-xs text-zinc-300 md:flex">
+              <Mail className="h-3.5 w-3.5 text-zinc-300" />
               <span className="font-mono font-medium">{profile.email}</span>
             </div>
             <LogoutButton />
@@ -98,7 +98,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         <footer className="border-t border-zinc-200/60 bg-white py-8 pb-24 text-xs text-zinc-600 transition-colors duration-300 dark:border-zinc-800/60 dark:bg-zinc-950 dark:text-zinc-400 lg:pb-8">
           <div className="container mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
             <BrandLogo className="h-6" />
-            <span className="text-[10px] font-light text-zinc-600 dark:text-zinc-400">
+            <span className="text-[10px] text-zinc-600 dark:text-zinc-400">
               © {new Date().getFullYear()} Despeja la X • Portal de Gestión Privada Seguro.
             </span>
           </div>

@@ -183,13 +183,13 @@ export function DocumentsClient({
       {/* Cabecera y Introducción */}
       <div className="space-y-2">
           <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-            <FolderArchive className="h-3.5 w-3.5 text-amber-500" />
+            <FolderArchive className="h-3.5 w-3.5 text-zinc-500" />
             <span>Biblioteca de proyecto</span>
           </div>
-          <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+          <h1 className="display-portal text-zinc-900 dark:text-white">
             Documentos
           </h1>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
             Expediente digital completo de tu vivienda. Accede de forma segura y descarga las versiones definitivas vigentes de planos de distribución, proyectos técnicos, licencias y presupuestos oficiales.
           </p>
         </div>
@@ -300,7 +300,7 @@ export function DocumentsClient({
                                 {doc.title}
                               </h4>
 
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-zinc-600 dark:text-zinc-400 pt-0.5 font-light">
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-zinc-600 dark:text-zinc-400 pt-0.5">
                                 <span>{phase ? `${phase.phase_number} • ${phase.name}` : "Diseño General"}</span>
                                 <span>•</span>
                                 <span>Versión {doc.version || "v1.0"}</span>

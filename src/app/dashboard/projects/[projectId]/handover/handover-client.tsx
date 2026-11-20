@@ -117,13 +117,13 @@ export function HandoverClient({
       {/* Cabecera y Introducción */}
       <div className="space-y-2">
         <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-          <Key className="h-3.5 w-3.5 text-amber-500" />
+          <Key className="h-3.5 w-3.5 text-zinc-500" />
           <span>Llaves y Documentación Final</span>
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
+        <h1 className="display-portal text-zinc-900 dark:text-white">
           Entrega
         </h1>
-        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl">
           El hito final. Aquí recopilamos el acta de entrega formal de llaves, el expediente de planos as-built definitivos, las garantías oficiales del equipamiento y manuales de mantenimiento preventivo.
         </p>
       </div>
@@ -134,14 +134,14 @@ export function HandoverClient({
       {!isHandoverActive ? (
         <div className="animate-in fade-in duration-500 pt-6">
           <Card className="border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/40 p-12 rounded-3xl text-center space-y-6 max-w-2xl mx-auto shadow-sm backdrop-blur-md">
-            <div className="h-16 w-16 bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
-              <Key className="h-8 w-8 animate-pulse-slow" />
+            <div className="h-16 w-16 bg-amber-500/10 text-zinc-800 dark:bg-amber-500/20 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <Key className="h-8 w-8" />
             </div>
             <div className="space-y-2">
               <h2 className="text-base font-bold text-zinc-800 dark:text-zinc-200">
                 Esta sección se activará cuando lleguemos a la entrega final de tu hogar.
               </h2>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto font-light font-sans">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto font-sans">
                 Actualmente estamos concentrados en el avance técnico de la obra. Cuando completemos los acabados generales y las limpiezas de obra, activaremos este portal donde podrás descargar las garantías oficiales, manuales y planos As-Built definitivos.
               </p>
             </div>
@@ -160,10 +160,10 @@ export function HandoverClient({
               <span className="text-[10px] font-mono text-zinc-600 dark:text-zinc-400 uppercase tracking-widest font-bold block flex items-center gap-1">
                 <Sparkles className="h-3.5 w-3.5" /> ¡BIENVENIDOS A VUESTRO NUEVO HOGAR!
               </span>
-              <h2 className="text-2xl md:text-3xl font-heading font-light text-zinc-900 dark:text-white leading-tight">
+              <h2 className="text-2xl md:text-3xl font-heading font-light normal-case tracking-[-0.015em] text-zinc-900 dark:text-white leading-tight">
                 Enhorabuena, tu proyecto ha finalizado
               </h2>
-              <p className="text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed font-light font-sans">
+              <p className="text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed font-sans">
                 Ha sido un viaje increíble transformar esta idea sobre el papel en vuestro hogar. Queremos agradeceros vuestra total confianza en el equipo de <strong className="font-semibold">Despeja la X</strong>. Disfrutad de cada rincón de este nuevo espacio creado para vosotros.
               </p>
             </div>
@@ -204,7 +204,7 @@ export function HandoverClient({
               <div className="space-y-4">
                 <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Documentación Final del Proyecto ({finalDocs.length})</span>
                 {finalDocs.length === 0 ? (
-                  <Card className="border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40 p-8 text-center text-xs text-zinc-600 dark:text-zinc-400 font-light rounded-3xl">
+                  <Card className="border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40 p-8 text-center text-xs text-zinc-600 dark:text-zinc-400 rounded-3xl">
                     El estudio incluirá aquí el expediente final de tu vivienda (acta de entrega, certificado final de obra, planos as-built) en la entrega.
                   </Card>
                 ) : (
@@ -229,7 +229,7 @@ export function HandoverClient({
                           <button
                             onClick={() => handleDownload(doc)}
                             disabled={loadingDocId !== null}
-                            className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 hover:text-amber-500 font-bold transition-colors"
+                            className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 font-bold transition-colors"
                           >
                             {loadingDocId === doc.id ? (
                               <><RefreshCw className="h-3 w-3 animate-spin" /> Preparando descarga…</>
@@ -246,7 +246,7 @@ export function HandoverClient({
 
               <div className="space-y-4 pt-4 border-t border-zinc-150/40 dark:border-zinc-800/40">
                 <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Manuales de Uso e Instrucciones</span>
-                <Card className="border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40 p-8 text-center text-xs text-zinc-600 dark:text-zinc-400 font-light rounded-3xl">
+                <Card className="border border-dashed border-zinc-300 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/40 p-8 text-center text-xs text-zinc-600 dark:text-zinc-400 rounded-3xl">
                   El estudio incluirá aquí los manuales de uso de tu vivienda en la entrega.
                 </Card>
               </div>
@@ -258,7 +258,7 @@ export function HandoverClient({
             <div className="space-y-6 animate-in fade-in duration-300">
               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Garantías de tu vivienda</span>
               <Card className="border border-zinc-200/60 bg-white/70 dark:border-zinc-850 dark:bg-zinc-900/60 p-6 rounded-3xl shadow-2xs">
-                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-light leading-relaxed whitespace-pre-line">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
                   {warrantyInfo}
                 </p>
               </Card>
@@ -268,7 +268,7 @@ export function HandoverClient({
                 <Info className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Nota aclaratoria sobre coberturas</span>
-                  <p className="text-zinc-650 dark:text-zinc-400 font-light font-sans">
+                  <p className="text-zinc-650 dark:text-zinc-400 font-sans">
                     Los plazos indicados comienzan a regir a partir de la firma del Acta de Recepción definitiva de la obra. Las garantías del fabricante se rigen bajo los canales de SAT de cada marca independiente; no obstante, el estudio DLX prestará mediación y soporte durante todo el primer año.
                   </p>
                 </div>
@@ -281,7 +281,7 @@ export function HandoverClient({
             <div className="space-y-6 animate-in fade-in duration-300">
               <span className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em] block font-bold">Guía de Cuidado Preventivo para los Materiales de tu Hogar</span>
               <Card className="border border-zinc-200/60 bg-white/70 dark:border-zinc-850 dark:bg-zinc-900/60 p-6 rounded-3xl shadow-2xs">
-                <p className="text-xs text-zinc-700 dark:text-zinc-300 font-light leading-relaxed whitespace-pre-line">
+                <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
                   {recommendations}
                 </p>
               </Card>
@@ -317,7 +317,7 @@ export function HandoverClient({
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 p-3.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent text-[10px] text-white font-mono flex flex-col gap-0.5">
                         <span className="font-bold text-xs">{photo.room} · Entrega</span>
-                        <span className="font-light opacity-80 truncate text-[9px]">{photo.caption}</span>
+                        <span className="opacity-80 truncate text-[9px]">{photo.caption}</span>
                       </div>
                     </div>
                   ))}
@@ -329,16 +329,16 @@ export function HandoverClient({
           {/* SECCIÓN DE CONTACTO POST-ENTREGA */}
           <Card className="p-6 md:p-8 rounded-3xl border border-zinc-200/50 bg-white/70 dark:border-zinc-800/50 dark:bg-zinc-900/60 shadow-sm backdrop-blur-md space-y-6">
             <div className="flex items-center space-x-2 border-b border-zinc-150/40 dark:border-zinc-800/40 pb-4">
-              <PhoneCall className="h-4.5 w-4.5 text-amber-500" />
+              <PhoneCall className="h-4.5 w-4.5 text-zinc-500" />
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-zinc-600 dark:text-zinc-400 font-bold">Contacto post-entrega y posventa</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
               <div className="md:col-span-8 space-y-4">
-                <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed font-sans font-light">
+                <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed font-sans">
                   Iniciamos la fase de garantía. Para asegurar que todo funciona exactamente como se ha diseñado, cuentas con un <strong className="font-semibold">Servicio Post-Venta Prioritario</strong> a tu entera disposición durante el primer año natural de vida del inmueble.
                 </p>
-                <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed font-sans font-light">
+                <p className="text-xs text-zinc-650 dark:text-zinc-350 leading-relaxed font-sans">
                   Si surge cualquier desajuste menor (desajuste de bisagras por asentamiento térmico, presiones de agua, mecanismos o repasos), puedes notificárnoslo directamente y organizaremos una visita técnica de repaso en obra con la constructora.
                 </p>
               </div>
@@ -361,7 +361,7 @@ export function HandoverClient({
                   </div>
                 </div>
 
-                <div className="border-t border-zinc-800 pt-2 text-[9px] text-zinc-400 font-light">
+                <div className="border-t border-zinc-800 pt-2 text-[9px] text-zinc-400">
                   <span>Atención de incidencias técnicas en un plazo estimado inferior a 48 horas laborales.</span>
                 </div>
               </div>
@@ -401,7 +401,7 @@ export function HandoverClient({
               <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500">
                 <span className="bg-zinc-850 px-2 py-0.5 rounded text-zinc-300 uppercase">{lightboxPhoto.room}</span>
               </div>
-              <p className="text-zinc-200 font-light text-sm">
+              <p className="text-zinc-200 text-sm">
                 {lightboxPhoto.caption}
               </p>
             </div>
