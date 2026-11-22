@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail, Loader2, MailCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, ArrowLeft, ArrowRight, Loader2, Mail, MailCheck } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { sendSignInLinkToEmail } from "firebase/auth";
 import { EMAIL_FOR_SIGN_IN_KEY } from "@/lib/firebase/email-link";
 import { BrandLogo } from "@/components/brand-logo";
+import { StateBadge } from "@/components/portal-ui";
 
 /**
  * Acceso sin contraseña (email link de Firebase): el cliente escribe su email
  * y recibe un enlace de un solo uso que completa la página /acceso.
+ *
+ * Diseño (fase 2): portada Jet con el logotipo y la línea del método (la textura de
+ * marcos solo detrás del dibujo) y el acceso en zona clara: campo con borde de control,
+ * botón píldora Jet y el estado «enlace enviado». Pantalla tranquila: nada se anima al
+ * cargar. El rojo solo aparece en el error del formulario.
  */
 
 export default function LoginPage() {
@@ -23,6 +25,8 @@ export default function LoginPage() {
   const [linkSent, setLinkSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  // Al llegar a «enlace enviado», el foco pasa al titular (teclado y lector de pantalla)
+  const enfocar = useCallback((el: HTMLHeadingElement | null) => el?.focus(), []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +56,10 @@ export default function LoginPage() {
       // Recordar el email para que /acceso no lo pida en este dispositivo
       window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, cleanEmail);
       setLinkSent(true);
-    } catch (err: any) {
+    } catch (err) {
       // Mensaje idéntico exista o no el correo, para no revelar qué emails
       // están autorizados; solo los errores de formato se detallan.
-      if (err?.code === "auth/invalid-email") {
+      if ((err as { code?: string } | null)?.code === "auth/invalid-email") {
         setErrorMsg("El correo no tiene un formato válido; revísalo.");
       } else {
         console.error("Error enviando el enlace de acceso:", err);
@@ -67,117 +71,164 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 relative overflow-hidden">
-      {/* Fondo con retícula de plano arquitectónico */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-50 pointer-events-none" />
-
-      {/* Botón superior de retorno al Home público */}
-      <div className="absolute top-6 left-6 z-20">
-        <Link href="/">
-          <Button variant="ghost" className="font-mono text-xs uppercase tracking-wider text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-900/50 transition-colors duration-200">
-            <ArrowLeft className="mr-1.5 h-4 w-4" /> Volver al Inicio
-          </Button>
-        </Link>
-      </div>
-
-      <div className="flex-grow flex items-center justify-center p-6 z-10">
-        <div className="w-full max-w-md">
-          {/* Card Principal */}
-          <Card className="border border-zinc-200/80 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/90 shadow-2xl backdrop-blur-md transition-all duration-300">
-            <CardHeader className="space-y-3 pt-8 text-center border-b border-zinc-100 dark:border-zinc-800/80 pb-6">
-              <div className="flex justify-center mb-1">
-                <BrandLogo className="h-9" />
-              </div>
-              <CardTitle className="text-xl tracking-tight text-zinc-900 dark:text-white">
-                Acceso al Portal de Clientes
-              </CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs max-w-[280px] mx-auto">
-                Sin contraseñas: escribe tu correo y te enviaremos un enlace de acceso seguro.
-              </CardDescription>
-            </CardHeader>
-
-            {linkSent ? (
-              /* Estado: enlace enviado */
-              <CardContent className="space-y-5 pt-8 pb-8 text-center">
-                <MailCheck className="h-12 w-12 text-zinc-800 bg-zinc-100 p-2.5 rounded-full mx-auto" />
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-white">Revisa tu correo</p>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-[300px] mx-auto leading-relaxed">
-                    Si <span className="font-mono">{email.trim().toLowerCase()}</span> está dado de alta,
-                    te hemos enviado un enlace para entrar al portal. Ábrelo desde este dispositivo
-                    para acceder directamente. Revisa también la carpeta de spam.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { setLinkSent(false); setSuccessMsg(null); }}
-                  className="text-[10px] font-mono tracking-wide text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:underline"
-                >
-                  ¿No te llega? Vuelve a intentarlo
-                </button>
-              </CardContent>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <CardContent className="space-y-5 pt-6">
-                  {/* Mensajes de Alerta */}
-                  {errorMsg && (
-                    <div className="p-3 text-xs bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 rounded-lg">
-                      {errorMsg}
-                    </div>
-                  )}
-                  {successMsg && (
-                    <div className="p-3 text-xs bg-zinc-100  text-zinc-800  border border-zinc-200  rounded-lg">
-                      {successMsg}
-                    </div>
-                  )}
-
-                  {/* Campo Email */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-mono tracking-wider uppercase text-zinc-600 dark:text-zinc-400">
-                      Correo Electrónico
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="ejemplo@despejalax.es"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-10 border-zinc-200 dark:border-zinc-800 focus-visible:ring-zinc-900 dark:focus-visible:ring-white"
-                        required
-                      />
-                    </div>
-                    <p className="text-[10px] text-zinc-600 dark:text-zinc-400">
-                      Usa el correo con el que el estudio te dio de alta en tu obra.
-                    </p>
-                  </div>
-                </CardContent>
-
-                <CardFooter className="flex flex-col space-y-4 pb-8 pt-2">
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full h-11 font-mono text-xs uppercase tracking-widest bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 transition-all duration-300"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...
-                      </>
-                    ) : (
-                      "Enviarme el enlace de acceso"
-                    )}
-                  </Button>
-
-                  <div className="text-[10px] text-zinc-600 dark:text-zinc-400 text-center max-w-[280px]">
-                    Si eres cliente y no consigues acceder, ponte en contacto con tu gestor en Despeja la X.
-                  </div>
-                </CardFooter>
-              </form>
-            )}
-          </Card>
+    <div className="flex min-h-dvh flex-col bg-background lg:grid lg:grid-cols-2">
+      {/* ── Portada Jet ── */}
+      <section
+        aria-labelledby="acceso-titulo"
+        className="dark flex flex-col bg-jet px-4 pt-4 pb-8 text-whitesmoke sm:px-6 lg:sticky lg:top-0 lg:h-dvh lg:px-12 lg:pt-8 lg:pb-12"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <BrandLogo className="h-7 sm:h-8" />
+          <Link
+            href="/"
+            className="-mr-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-zinc-200 hover:bg-white/10 hover:text-whitesmoke"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+            Volver al inicio
+          </Link>
         </div>
-      </div>
+
+        <div className="lg:my-auto">
+          {/* Zona del dibujo: la textura de marcos vive solo aquí, detrás de la línea del método
+              (proyecto, obra, llaves). Decorativa y quieta. */}
+          <div aria-hidden className="tex-marcos -mx-4 mt-5 flex h-36 items-center px-4 sm:-mx-6 sm:px-6 lg:-mx-12 lg:h-52 lg:px-12">
+            <svg viewBox="0 0 350 62" className="h-auto w-full max-w-[350px] overflow-visible lg:max-w-[440px]" focusable="false">
+              <path d="M0 14 H236" stroke="#f5f3f4" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <path d="M246 14 H332" stroke="#8c9089" strokeWidth="2" strokeDasharray="5 5" fill="none" />
+              <g fill="#f5f3f4">
+                {[14, 32, 50, 68, 86, 104, 122, 140, 158].map((cx) => (
+                  <circle key={cx} cx={cx} cy="14" r="4" />
+                ))}
+              </g>
+              <circle cx="236" cy="14" r="9" fill="#333533" stroke="#f5f3f4" strokeWidth="2" />
+              <circle cx="342" cy="14" r="6" fill="#333533" stroke="#8c9089" strokeWidth="2" />
+              <g fontFamily="Montserrat, system-ui, sans-serif" fontSize="12" fontWeight="600" letterSpacing="1.7" fill="#9da19a">
+                <text x="86" y="44" textAnchor="middle">PROYECTO</text>
+                <text x="236" y="44" textAnchor="middle">OBRA</text>
+                <text x="350" y="44" textAnchor="end">LLAVES</text>
+              </g>
+            </svg>
+          </div>
+
+          <div className="mt-4 space-y-3 lg:mt-8">
+            <p className="eyebrow">Portal de clientes</p>
+            <h1 id="acceso-titulo" className="display-portal text-whitesmoke [text-wrap:balance]">
+              Tu casa, fase a fase
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Acceso por enlace ── */}
+      <main className="flex flex-1 flex-col px-4 sm:px-6 lg:px-12">
+        <div className="mx-auto w-full max-w-md pt-7 lg:my-auto lg:pt-12">
+          {linkSent ? (
+            /* Estado: enlace enviado */
+            <section role="status" aria-live="polite" aria-labelledby="acceso-enviado">
+              <StateBadge tone="done" icon={<MailCheck aria-hidden />}>
+                Enlace enviado
+              </StateBadge>
+              <h2
+                id="acceso-enviado"
+                tabIndex={-1}
+                ref={enfocar}
+                className="mt-4 text-2xl leading-[1.1] tracking-[0.02em] text-ink outline-none"
+              >
+                Revisa tu correo
+              </h2>
+              <p className="mt-3 text-base leading-[1.55] text-ink [text-wrap:pretty]">
+                Si <strong className="font-semibold [overflow-wrap:anywhere]">{email.trim().toLowerCase()}</strong> está dado
+                de alta, te hemos enviado un enlace para entrar al portal. Ábrelo desde este dispositivo para acceder
+                directamente.
+              </p>
+              <p className="mt-2 flex gap-2 text-sm leading-[1.5] text-ink-soft">
+                <Mail className="mt-0.5 size-4 shrink-0 text-ink-mute" aria-hidden />
+                <span>Revisa también la carpeta de spam.</span>
+              </p>
+              <button
+                type="button"
+                onClick={() => { setLinkSent(false); setSuccessMsg(null); }}
+                className="mt-6 inline-flex min-h-11 items-center rounded-full border border-control-line px-5 text-sm font-semibold text-ink hover:border-jet hover:bg-zinc-100"
+              >
+                ¿No te llega? Vuelve a intentarlo
+              </button>
+            </section>
+          ) : (
+            <section aria-label="Acceso por correo">
+              <p className="text-base leading-[1.55] text-ink [text-wrap:pretty]">
+                Sin contraseñas: escribe tu correo y te enviamos un enlace de acceso seguro.
+              </p>
+
+              <form onSubmit={handleSubmit} className="mt-6">
+                {/* Mensajes: el rojo, solo para el error del formulario */}
+                {errorMsg && (
+                  <div
+                    role="alert"
+                    className="mb-5 flex gap-3 rounded-lg border border-danger-ink/30 bg-danger-surface px-4 py-3.5 text-sm leading-[1.5] text-danger-ink"
+                  >
+                    <AlertCircle className="mt-0.5 size-[18px] shrink-0" aria-hidden />
+                    <p className="font-medium">{errorMsg}</p>
+                  </div>
+                )}
+                {successMsg && (
+                  <div role="status" className="mb-5 rounded-lg border border-border bg-[#eceaeb] px-4 py-3.5 text-sm text-ink">
+                    {successMsg}
+                  </div>
+                )}
+
+                <label htmlFor="email" className="block text-sm font-semibold text-ink">
+                  Correo electrónico
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  placeholder="tu@correo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-describedby="email-ayuda"
+                  required
+                  className="mt-2 block h-13 w-full rounded-md border-[1.5px] border-control-line bg-white px-4 text-base font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-mute"
+                />
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="mt-3.5 flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-jet px-7 text-[15px] font-semibold text-whitesmoke hover:bg-zinc-700 disabled:cursor-wait disabled:opacity-80"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden /> Enviando…
+                    </>
+                  ) : (
+                    <>
+                      Enviarme el enlace de acceso <ArrowRight className="size-4" aria-hidden />
+                    </>
+                  )}
+                </button>
+
+                <p id="email-ayuda" className="mt-3.5 flex gap-2 text-sm leading-[1.5] text-ink-soft">
+                  <Mail className="mt-0.5 size-4 shrink-0 text-ink-mute" aria-hidden />
+                  <span>Usa el correo con el que el estudio te dio de alta en tu obra.</span>
+                </p>
+              </form>
+            </section>
+          )}
+        </div>
+
+        <footer className="mx-auto mt-auto w-full max-w-md pt-10 pb-8">
+          <div className="border-t border-border pt-4">
+            <p className="text-sm leading-[1.5] text-ink-soft">
+              ¿No consigues entrar? Ponte en contacto con tu gestor en Despeja la X.
+            </p>
+            <p className="eyebrow mt-4">Tu hogar, listo y sin sorpresas.</p>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }

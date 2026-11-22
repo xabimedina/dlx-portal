@@ -240,6 +240,97 @@
 @keyframes dlx-fade {
   from { opacity: 0; }
 }
+/* Trazo que se dibuja (excepción con nombre: --dur-draw a 10 fps, solo el «momento de producto») */
+@keyframes dlx-draw {
+  from { stroke-dashoffset: var(--len, 400); }
+  to { stroke-dashoffset: 0; }
+}
+/* Pieza que se posa (el disco de ahora): 360 ms, curva de salida, sin rebote */
+@keyframes dlx-settle {
+  from { opacity: 0; transform: scale(0.88); }
+}
+
+/* ── Piezas comunes del portal (fase 2, propuesta del cliente al sistema revisado) ── */
+@layer components {
+  /* Antetítulo: 12/600, .16em, mayúsculas, tinta apagada, con un filete de 22 px delante */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1.5px;
+    flex: none;
+    background: currentColor;
+    opacity: 0.5;
+  }
+  .eyebrow-bare::before { display: none; }
+  .dark .eyebrow { color: #9da19a; }
+
+  /* Numeral de índice (01, 02…): Kanit 600, cifras tabulares */
+  .numeral {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-ink-mute);
+  }
+
+  /* Cifra a tamaño cartel: Montserrat Light */
+  .kpi {
+    font-family: var(--font-sans);
+    font-weight: 300;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Cuadro técnico: celdas separadas por filetes, clave en antetítulo y valor en 15/600 */
+  .cells {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    border-block: 1px solid var(--border);
+  }
+  .cells > * { padding: 14px 12px 14px 0; min-width: 0; }
+  .cells > * + * { border-left: 1px solid var(--border); padding-left: 12px; }
+  .cell-k {
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-mute);
+  }
+  .dark .cell-k { color: #9da19a; }
+  .cell-v {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  /* Texturas de la marca (12 % de opacidad en el propio SVG). Solo en la zona del dibujo,
+     nunca bajo el texto. En las bandas Jet (.dark) se usa la versión clara. */
+  .tex-ejes { background-image: url("/brand/texturas/ejes-smoke.svg"); background-size: 96px 96px; }
+  .dark .tex-ejes, .tex-ejes.dark { background-image: url("/brand/texturas/ejes-jet.svg"); }
+  .tex-nudos { background-image: url("/brand/texturas/nudos-smoke.svg"); background-size: 24px 24px; }
+  .dark .tex-nudos, .tex-nudos.dark { background-image: url("/brand/texturas/nudos-jet.svg"); }
+  .tex-marcos { background-image: url("/brand/texturas/marcos-smoke.svg"); background-size: 144px 144px; }
+  .dark .tex-marcos, .tex-marcos.dark { background-image: url("/brand/texturas/marcos-jet.svg"); }
+  .tex-rayado { background-image: url("/brand/texturas/rayado-smoke.svg"); background-size: 12px 12px; }
+  .tex-cruces { background-image: url("/brand/texturas/cruces-smoke.svg"); background-size: 48px 48px; }
+}
 
 @layer base {
   * {
@@ -268,6 +359,11 @@
   :focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+  }
+  /* Los titulares que reciben el foco por código (tabindex="-1", p. ej. «Revisa tu correo»)
+     no son controles: no llevan anillo */
+  [tabindex="-1"]:focus-visible {
+    box-shadow: none;
   }
   /* Pulsar: 1 px abajo, en 140 ms. Sin escalas ni rebotes. */
   a, button, [role="button"], summary, label:has(> input) {

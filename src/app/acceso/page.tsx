@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Loader2, Mail, ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, ArrowRight, Loader2, Mail, ShieldAlert } from "lucide-react";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { establishSession } from "@/lib/firebase/session";
 import { EMAIL_FOR_SIGN_IN_KEY } from "@/lib/firebase/email-link";
-import { BrandLogo } from "@/components/brand-logo";
+import { AccessShell } from "@/components/access-shell";
+import { StateBadge } from "@/components/portal-ui";
 
 type Status =
   | { kind: "working" }
@@ -23,12 +20,19 @@ type Status =
  * Completa el inicio de sesión, crea la cookie de sesión del servidor y
  * redirige al dashboard. Si el enlace se abre en un dispositivo distinto al
  * que lo pidió, Firebase exige confirmar el email tecleándolo una vez.
+ *
+ * Diseño (fase 2): la misma portada Jet que /login (logotipo, línea del método y
+ * titular) y, en la zona clara, el estado: verificando (en curso), confirmar el correo
+ * (campo con borde de control y botón píldora Jet) o el enlace que no sirve (aviso
+ * neutro y «Pedir un enlace nuevo»). Pantalla tranquila: solo gira el indicador de carga.
  */
 export default function AccesoPage() {
   const [status, setStatus] = useState<Status>({ kind: "working" });
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const startedRef = useRef(false);
+  // Si el acceso no se completa, el foco pasa al titular del aviso (teclado y lector de pantalla)
+  const enfocar = useCallback((el: HTMLHeadingElement | null) => el?.focus(), []);
 
   const completeSignIn = async (emailToUse: string) => {
     const auth = getFirebaseAuth();
@@ -47,14 +51,15 @@ export default function AccesoPage() {
         return;
       }
       window.location.replace("/dashboard");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error completando el acceso por enlace:", err);
-      if (err?.code === "auth/invalid-action-code" || err?.code === "auth/expired-action-code") {
+      const code = (err as { code?: string } | null)?.code;
+      if (code === "auth/invalid-action-code" || code === "auth/expired-action-code") {
         setStatus({
           kind: "error",
           message: "Este enlace ya se usó o ha caducado. Pide uno nuevo desde la página de acceso.",
         });
-      } else if (err?.code === "auth/invalid-email") {
+      } else if (code === "auth/invalid-email") {
         setStatus({ kind: "need-email" });
       } else {
         setStatus({ kind: "error", message: "No se pudo completar el acceso. Pide un enlace nuevo e inténtalo otra vez." });
@@ -78,7 +83,6 @@ export default function AccesoPage() {
       // Enlace abierto en un dispositivo distinto al que lo solicitó
       setStatus({ kind: "need-email" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleConfirmEmail = async (e: React.FormEvent) => {
@@ -92,94 +96,113 @@ export default function AccesoPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-50 pointer-events-none" />
+    <AccessShell
+      titleId="acceso-titulo"
+      action={
+        <Link
+          href="/"
+          className="-mr-2 inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-zinc-200 hover:bg-white/10 hover:text-whitesmoke"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Volver al inicio
+        </Link>
+      }
+      footerNote="¿No consigues entrar? Ponte en contacto con tu gestor en Despeja la X."
+    >
+      {status.kind === "working" && (
+        /* Estado: verificando el enlace (en curso) */
+        <section role="status" aria-live="polite" aria-labelledby="acceso-verificando">
+          <StateBadge tone="progress" icon={<Loader2 className="animate-spin" aria-hidden />}>
+            Verificando el enlace
+          </StateBadge>
+          <h2 id="acceso-verificando" className="mt-4 text-2xl leading-[1.1] tracking-[0.02em] text-ink">
+            Completando tu acceso
+          </h2>
+          <p className="mt-3 text-base leading-[1.55] text-ink [text-wrap:pretty]">
+            Estamos comprobando tu enlace de acceso. En un momento entras al portal.
+          </p>
+        </section>
+      )}
 
-      <div className="flex-grow flex items-center justify-center p-6 z-10">
-        <div className="w-full max-w-md">
-          <Card className="border border-zinc-200/80 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/90 shadow-2xl backdrop-blur-md transition-all duration-300">
-            <CardHeader className="space-y-3 pt-8 text-center border-b border-zinc-100 dark:border-zinc-800/80 pb-6">
-              <div className="flex justify-center mb-1">
-                <BrandLogo className="h-9" />
-              </div>
-              <CardTitle className="text-xl tracking-tight text-zinc-900 dark:text-white">
-                Completando tu acceso
-              </CardTitle>
-              <CardDescription className="text-zinc-600 dark:text-zinc-400 text-xs max-w-[280px] mx-auto">
-                Portal de Clientes de Despeja la X
-              </CardDescription>
-            </CardHeader>
+      {status.kind === "need-email" && (
+        /* Estado: el enlace se abrió en otro dispositivo; confirmar el correo */
+        <section aria-labelledby="acceso-confirmar">
+          <h2 id="acceso-confirmar" className="text-2xl leading-[1.1] tracking-[0.02em] text-ink">
+            Confirma tu correo
+          </h2>
+          <p id="confirmar-ayuda" className="mt-3 text-base leading-[1.55] text-ink [text-wrap:pretty]">
+            Has abierto el enlace en un dispositivo distinto al que lo pidió. Por seguridad, confirma el correo al que
+            se envió.
+          </p>
 
-            <CardContent className="pt-8 pb-8">
-              {status.kind === "working" && (
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                    Verificando tu enlace de acceso...
-                  </p>
-                </div>
+          <form onSubmit={handleConfirmEmail} className="mt-6">
+            <label htmlFor="confirm-email" className="block text-sm font-semibold text-ink">
+              Correo electrónico
+            </label>
+            <input
+              id="confirm-email"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="off"
+              spellCheck={false}
+              placeholder="tu@correo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-describedby="confirmar-ayuda"
+              required
+              autoFocus
+              className="mt-2 block h-13 w-full rounded-md border-[1.5px] border-control-line bg-white px-4 text-base font-medium text-ink outline-none placeholder:font-normal placeholder:text-ink-mute"
+            />
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-3.5 flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-jet px-7 text-[15px] font-semibold text-whitesmoke hover:bg-zinc-700 disabled:cursor-wait disabled:opacity-80"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden /> Entrando…
+                </>
+              ) : (
+                <>
+                  Confirmar y entrar <ArrowRight className="size-4" aria-hidden />
+                </>
               )}
+            </button>
 
-              {status.kind === "need-email" && (
-                <form onSubmit={handleConfirmEmail} className="space-y-5">
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    Has abierto el enlace en un dispositivo distinto al que lo pidió.
-                    Por seguridad, confirma el correo al que se envió:
-                  </p>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-email" className="text-xs font-mono tracking-wider uppercase text-zinc-600 dark:text-zinc-400">
-                      Correo Electrónico
-                    </Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-3 h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                      <Input
-                        id="confirm-email"
-                        type="email"
-                        placeholder="ejemplo@despejalax.es"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-10 border-zinc-200 dark:border-zinc-800 focus-visible:ring-zinc-900 dark:focus-visible:ring-white"
-                        required
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-11 font-mono text-xs uppercase tracking-widest bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100 transition-all duration-300"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...
-                      </>
-                    ) : (
-                      "Confirmar y entrar"
-                    )}
-                  </Button>
-                </form>
-              )}
+            <p className="mt-3.5 flex gap-2 text-sm leading-[1.5] text-ink-soft">
+              <Mail className="mt-0.5 size-4 shrink-0 text-ink-mute" aria-hidden />
+              <span>Es el mismo correo con el que pediste el enlace.</span>
+            </p>
+          </form>
+        </section>
+      )}
 
-              {status.kind === "error" && (
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <ShieldAlert className="h-10 w-10 text-amber-500 bg-amber-500/10 p-2 rounded-full" />
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-[300px]">
-                    {status.message}
-                  </p>
-                  <Link href="/login" className="w-full">
-                    <Button
-                      variant="outline"
-                      className="w-full h-10 font-mono text-[10px] uppercase tracking-widest border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50"
-                    >
-                      Pedir un enlace nuevo
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+      {status.kind === "error" && (
+        /* Estado: el enlace no sirve (aviso neutro: en el portal no hay rojo fuera del formulario) */
+        <section aria-labelledby="acceso-error">
+          <StateBadge tone="quiet" icon={<ShieldAlert aria-hidden />}>
+            Acceso sin completar
+          </StateBadge>
+          <h2
+            id="acceso-error"
+            tabIndex={-1}
+            ref={enfocar}
+            className="mt-4 text-2xl leading-[1.1] tracking-[0.02em] text-ink outline-none focus-visible:[box-shadow:none]"
+          >
+            No hemos podido completar tu acceso
+          </h2>
+          <p className="mt-3 text-base leading-[1.55] text-ink [text-wrap:pretty]">{status.message}</p>
+          <Link
+            href="/login"
+            className="mt-6 flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-jet px-7 text-[15px] font-semibold text-whitesmoke hover:bg-zinc-700"
+          >
+            Pedir un enlace nuevo <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </section>
+      )}
+    </AccessShell>
   );
 }

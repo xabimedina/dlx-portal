@@ -6,6 +6,7 @@ import { sortClientProjects } from "@/lib/project-sort";
 import { AccessRestricted } from "@/components/access-restricted";
 import { BrandLogo } from "@/components/brand-logo";
 import { LogoutButton } from "@/components/logout-button";
+import { ClosingBand } from "@/components/portal-ui";
 import { NavTabs } from "./nav-tabs";
 import { ProjectSwitcher } from "./project-switcher";
 
@@ -38,9 +39,9 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   const { profile, project } = access;
 
-  // Proyectos del cliente (selector del header) + decisiones (dot ámbar del tab) + si hay maqueta (atajo)
+  // Proyectos del cliente (selector del header) + decisiones (contador del tab) + si hay maqueta (atajo)
   let clientProjects: { id: string; name: string; status?: string }[] = [];
-  let hasPendingDecisions = false;
+  let pendingDecisions = 0;
   let hasMaqueta = false;
   try {
     const [projects, decisions, maqueta] = await Promise.all([
@@ -50,7 +51,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
       getModel3dPublished(project.id).catch(() => null),
     ]);
     clientProjects = sortClientProjects(projects || []);
-    hasPendingDecisions = (decisions || []).some((d) => d.status === "Pendiente");
+    pendingDecisions = (decisions || []).filter((d) => d.status === "Pendiente").length;
     hasMaqueta = maqueta !== null;
   } catch (err) {
     console.error("Error cargando datos del layout de proyecto:", err);
@@ -89,23 +90,23 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
       <NavTabs
         projectId={project.id}
-        showDecisionsDot={hasPendingDecisions}
+        pendingDecisions={pendingDecisions}
         showHandover={project.current_stage === "handover" || project.status === "Finalizado"}
         showMaqueta={hasMaqueta}
       />
 
       {/* Contenido: hueco para el raíl en desktop y para la tab bar en móvil */}
       <div className="relative z-10 flex-grow lg:pl-24">
-        <main className="container mx-auto max-w-4xl px-4 pb-28 pt-8 sm:px-6 sm:pt-10 lg:pb-14">
+        <main className="container mx-auto max-w-4xl px-4 pb-14 pt-8 sm:px-6 sm:pt-10">
           {children}
         </main>
 
-        <footer className="border-t border-zinc-200/60 bg-white py-8 pb-24 text-xs text-zinc-600 transition-colors duration-300 dark:border-zinc-800/60 dark:bg-zinc-950 dark:text-zinc-400 lg:pb-8">
-          <div className="container mx-auto flex max-w-4xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
+        {/* Se acaba con una persona, no con un copyright */}
+        <ClosingBand href={`/dashboard/projects/${project.id}/meetings`} />
+        <footer className="dark bg-zinc-950 pt-8 pb-28 text-zinc-300 lg:pb-8">
+          <div className="container mx-auto max-w-4xl space-y-3 px-4 sm:px-6">
             <BrandLogo className="h-6" />
-            <span className="text-[10px] text-zinc-600 dark:text-zinc-400">
-              © {new Date().getFullYear()} Despeja la X • Portal de Gestión Privada Seguro.
-            </span>
+            <p className="text-[13px] leading-normal">Tu hogar, listo y sin sorpresas.</p>
           </div>
         </footer>
       </div>

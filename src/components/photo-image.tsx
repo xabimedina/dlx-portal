@@ -11,6 +11,8 @@ interface PhotoImageProps {
   containerClassName?: string; // Estilos CSS aplicados al contenedor wrapper
   alt?: string;
   fill?: boolean; // Si es true, el componente llenará el contenedor padre (como next/image fill)
+  /** Etiqueta honesta sobre la foto: «Foto de obra · Salón», «Render», «Referencia», «Foto final»… */
+  tag?: string;
 }
 
 type LoadStatus = "loading" | "loaded" | "error";
@@ -21,7 +23,8 @@ export function PhotoImage({
   className = "",
   containerClassName = "",
   alt,
-  fill = false
+  fill = false,
+  tag,
 }: PhotoImageProps) {
   // Determinar la URL correcta a usar según el modo
   const src = mode === "gallery" ? (photo.thumbnail_url || photo.image_url) : photo.image_url;
@@ -94,6 +97,13 @@ export function PhotoImage({
             status === "loaded" ? "opacity-100" : "opacity-0"
           } ${className}`}
         />
+      )}
+
+      {/* Cada imagen dice lo que es: foto de obra, render, referencia… Nada miente. */}
+      {tag && status !== "error" && (
+        <span className="pointer-events-none absolute left-2.5 top-2.5 z-30 max-w-[calc(100%-20px)] truncate rounded-md bg-whitesmoke px-2 py-1 text-xs font-semibold uppercase leading-tight tracking-[0.1em] text-jet">
+          {tag}
+        </span>
       )}
     </div>
   );

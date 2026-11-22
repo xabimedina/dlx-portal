@@ -4,6 +4,7 @@ import { withSignedPhotoUrls } from "@/lib/firebase/storage-urls";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
 import { AccessRestricted } from "@/components/access-restricted";
 import { isConfirmedMeeting } from "@/lib/actions-aggregator";
+import type { PortalDocument, PortalMeeting, PortalPhase, PortalPhoto, PortalRequest } from "@/types/portal";
 import { MeetingsClient } from "./meetings-client";
 
 interface PageProps {
@@ -19,13 +20,13 @@ export default async function ClientMeetingsPage({ params }: PageProps) {
   if (access.mode === "denied") {
     return <AccessRestricted message="No tienes autorización para acceder a las reuniones de este proyecto." />;
   }
-  const { profile, project } = access;
+  const { project } = access;
 
-  let phases: any[] = [];
-  let meetings: any[] = [];
-  let documents: any[] = [];
-  let photos: any[] = [];
-  let requests: any[] = [];
+  let phases: PortalPhase[] = [];
+  let meetings: PortalMeeting[] = [];
+  let documents: PortalDocument[] = [];
+  let photos: PortalPhoto[] = [];
+  let requests: PortalRequest[] = [];
 
   try {
     const [phasesData, meetingsData, allDocs, photosData, requestsData] = await Promise.all([
@@ -37,7 +38,7 @@ export default async function ClientMeetingsPage({ params }: PageProps) {
     ]);
     phases = phasesData || [];
     meetings = meetingsData || [];
-    documents = (allDocs || []).filter((d: any) => d.category === "Acta");
+    documents = (allDocs || []).filter((d) => d.category === "Acta");
     // Las fotos guardan rutas de Storage; el navegador necesita URLs firmadas
     photos = await withSignedPhotoUrls(photosData || []);
     requests = requestsData || [];
@@ -57,7 +58,7 @@ export default async function ClientMeetingsPage({ params }: PageProps) {
       phases={phases}
       documents={documents}
       projectId={project.id}
-      profile={profile}
+      projectName={project.name}
     />
   );
 }

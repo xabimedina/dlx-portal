@@ -3,112 +3,130 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home, Layers, Box, CheckSquare, CalendarDays, FileImage, FolderArchive, HardHat, Key,
+  Home, Route, Box, SquareCheck, CalendarDays, Image as ImageIcon, Folder, HardHat, Key, LayoutGrid,
 } from "lucide-react";
 
 /**
- * Navegación persistente del portal cliente: tab bar inferior en móvil y raíl
- * lateral izquierdo en desktop (≥1024px). Todas las secciones viven aquí;
- * «Entrega» solo aparece cuando el proyecto llega a esa etapa.
- *
- * «Maqueta» (página propia a pantalla completa) solo aparece si la obra
- * tiene una versión publicada.
+ * Navegación persistente del portal cliente (sistema revisado, nov 2026):
+ * - Móvil y tablet: tab bar de 5 pestañas en Jet translúcido (el único cristal del
+ *   sistema): Inicio, Camino, Decisiones, Obra y «Más». Reuniones, Fotos, Documentos,
+ *   Maqueta y Entrega viven en «Más», cada una con su línea de contexto.
+ * - Escritorio (≥1024 px): raíl lateral con todas las secciones, porque ahí caben.
+ * «Entrega» solo aparece en etapa de entrega o con la obra finalizada, y «Maqueta» solo
+ * si la obra tiene una versión publicada.
  */
 
-const TABS = [
+type Item = { slug: string; label: string; icon: typeof Home };
+
+const PRINCIPALES: Item[] = [
   { slug: "", label: "Inicio", icon: Home },
-  { slug: "phases", label: "El camino", icon: Layers },
-  { slug: "maqueta", label: "Maqueta", icon: Box },
-  { slug: "decisions", label: "Decisiones", icon: CheckSquare },
-  { slug: "meetings", label: "Reuniones", icon: CalendarDays },
-  { slug: "photos", label: "Fotos", icon: FileImage },
-  { slug: "documents", label: "Documentos", icon: FolderArchive },
+  { slug: "phases", label: "Camino", icon: Route },
+  { slug: "decisions", label: "Decisiones", icon: SquareCheck },
   { slug: "construction", label: "Obra", icon: HardHat },
+];
+
+const SECUNDARIAS: Item[] = [
+  { slug: "maqueta", label: "Maqueta", icon: Box },
+  { slug: "meetings", label: "Reuniones", icon: CalendarDays },
+  { slug: "photos", label: "Fotos", icon: ImageIcon },
+  { slug: "documents", label: "Documentos", icon: Folder },
   { slug: "handover", label: "Entrega", icon: Key },
-] as const;
+];
+
+const MAS: Item = { slug: "mas", label: "Más", icon: LayoutGrid };
 
 interface NavTabsProps {
   projectId: string;
-  /** Punto ámbar (sin número) sobre «Decisiones» si hay decisiones pendientes. */
-  showDecisionsDot: boolean;
+  /** Decisiones pendientes del cliente: contador sobre «Decisiones». */
+  pendingDecisions: number;
   /** «Entrega» solo se lista en etapa de entrega o proyecto finalizado. */
   showHandover: boolean;
   /** «Maqueta» solo se lista si hay una versión publicada. */
   showMaqueta: boolean;
 }
 
-export function NavTabs({ projectId, showDecisionsDot, showHandover, showMaqueta }: NavTabsProps) {
+export function NavTabs({ projectId, pendingDecisions, showHandover, showMaqueta }: NavTabsProps) {
   const pathname = usePathname();
   const base = `/dashboard/projects/${projectId}`;
+  const hrefOf = (slug: string) => (slug ? `${base}/${slug}` : base);
+  const isActive = (slug: string) => (slug ? pathname.startsWith(hrefOf(slug)) : pathname === base);
 
-  const visibles = TABS.filter((tab) => (tab.slug !== "handover" || showHandover) && (tab.slug !== "maqueta" || showMaqueta));
-  const items = visibles.map((tab) => {
-    const href = tab.slug ? `${base}/${tab.slug}` : base;
-    const active = tab.slug ? pathname.startsWith(href) : pathname === base;
-    const withDot = tab.slug === "decisions" && showDecisionsDot;
-    return { ...tab, href, active, withDot };
-  });
-
-  const renderIcon = (item: (typeof items)[number]) => (
-    <span className="relative inline-flex">
-      <item.icon className="h-5 w-5" aria-hidden />
-      {item.withDot && (
-        <span
-          className="absolute -top-0.5 -right-1 h-2 w-2 rounded-full bg-amber-500"
-          aria-label="Hay decisiones pendientes"
-        />
-      )}
-    </span>
+  const secundarias = SECUNDARIAS.filter(
+    (t) => (t.slug !== "handover" || showHandover) && (t.slug !== "maqueta" || showMaqueta),
   );
+  const enMas = isActive(MAS.slug) || secundarias.some((t) => isActive(t.slug));
+
+  const count = (slug: string) =>
+    slug === "decisions" && pendingDecisions > 0 ? pendingDecisions : 0;
+
+  const Badge = ({ n }: { n: number }) =>
+    n > 0 ? (
+      <>
+        <span
+          aria-hidden
+          className="absolute top-0.5 left-[calc(50%+6px)] min-w-[18px] rounded-full bg-whitesmoke px-[5px] text-center text-xs font-bold leading-[18px] text-jet"
+        >
+          {n}
+        </span>
+        <span className="sr-only">, {n} {n === 1 ? "pendiente" : "pendientes"}</span>
+      </>
+    ) : null;
+
+  const tabBar = [...PRINCIPALES, MAS];
+  const rail = [...PRINCIPALES, ...secundarias];
 
   return (
     <>
-      {/* Tab bar inferior (móvil y tablet) */}
+      {/* Tab bar inferior (móvil y tablet): 5 pestañas, etiquetas de 12 px */}
       <nav
         aria-label="Secciones del proyecto"
-        className="dark fixed bottom-0 inset-x-0 z-40 flex bg-[var(--nav-glass)] backdrop-blur-[10px] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="dark fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 bg-[var(--nav-glass)] px-1.5 pt-1.5 pb-[calc(10px+env(safe-area-inset-bottom))] text-zinc-200 backdrop-blur-[10px] lg:hidden"
       >
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={item.active ? "page" : undefined}
-            className={`relative flex min-h-14 min-w-0 flex-auto flex-col items-center justify-center gap-1 px-0.5 py-2 text-[8.5px] font-medium tracking-tight ${
-              item.active
-                ? "text-white before:absolute before:inset-x-[28%] before:top-0 before:h-0.5 before:rounded-b-sm before:bg-whitesmoke"
-                : "text-zinc-200 hover:text-white"
-            }`}
-          >
-            {renderIcon(item)}
-            <span className={`max-w-full truncate ${item.active ? "font-semibold" : ""}`}>
+        {tabBar.map((item) => {
+          const active = item.slug === MAS.slug ? enMas : isActive(item.slug);
+          return (
+            <Link
+              key={item.slug || "inicio"}
+              href={hrefOf(item.slug)}
+              aria-current={active ? "page" : undefined}
+              className={`relative flex min-h-[52px] flex-col items-center gap-1 pt-2 text-xs ${
+                active
+                  ? "font-semibold text-whitesmoke before:absolute before:inset-x-[30%] before:top-0 before:h-0.5 before:rounded-b-sm before:bg-whitesmoke"
+                  : "font-medium hover:text-whitesmoke"
+              }`}
+            >
+              <span className="relative inline-flex">
+                <item.icon className="size-6" aria-hidden />
+              </span>
               {item.label}
-            </span>
-          </Link>
-        ))}
+              <Badge n={count(item.slug)} />
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Raíl lateral (desktop) */}
+      {/* Raíl lateral (escritorio): todas las secciones */}
       <nav
         aria-label="Secciones del proyecto"
-        className="dark fixed left-0 top-20 bottom-0 z-40 hidden w-24 flex-col items-stretch gap-1 overflow-y-auto bg-[var(--nav-glass)] pt-6 pb-4 backdrop-blur-[10px] lg:flex"
+        className="dark fixed bottom-0 left-0 top-20 z-40 hidden w-24 flex-col items-stretch gap-1 overflow-y-auto bg-[var(--nav-glass)] pt-6 pb-4 text-zinc-200 backdrop-blur-[10px] lg:flex"
       >
-        {items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={item.active ? "page" : undefined}
-            className={`mx-2 flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] font-medium ${
-              item.active
-                ? "bg-white/10 text-white"
-                : "text-zinc-200 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            {renderIcon(item)}
-            <span className={`text-center leading-tight ${item.active ? "font-semibold" : ""}`}>
-              {item.label}
-            </span>
-          </Link>
-        ))}
+        {rail.map((item) => {
+          const active = isActive(item.slug);
+          return (
+            <Link
+              key={item.slug || "inicio"}
+              href={hrefOf(item.slug)}
+              aria-current={active ? "page" : undefined}
+              className={`relative mx-2 flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-xs ${
+                active ? "bg-white/10 font-semibold text-whitesmoke" : "font-medium hover:bg-white/5 hover:text-whitesmoke"
+              }`}
+            >
+              <item.icon className="size-5" aria-hidden />
+              <span className="text-center leading-tight">{item.label}</span>
+              <Badge n={count(item.slug)} />
+            </Link>
+          );
+        })}
       </nav>
     </>
   );

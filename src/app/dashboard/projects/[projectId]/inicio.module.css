@@ -1,0 +1,59 @@
+/*
+  Inicio · el «momento de producto» de la pantalla: el disco de ahora.
+  1. La línea de lo hecho se dibuja a 10 fps (dlx-draw, steps(10), --dur-draw) y cada nudo
+     aparece cuando la línea llega a él.
+  2. Lo que falta (discontinua) aparece al acabar el trazo.
+  3. El disco se posa (dlx-settle, 360 ms, --ease-out) y su relleno Saffron sube hasta el %.
+  4. La cifra y la llamada «avance real» aparecen al final.
+  Solo con la clase .novedad, que pinta el servidor cuando el último parte (id + %) es nuevo
+  para quien mira (esNovedad). Sin ella, y con «reducir movimiento», todo está ya en su
+  estado final.
+
+  Los fotogramas dlx-* son los globales de globals.css. Lightning CSS renombra con el hash
+  del módulo cualquier nombre de animación escrito tal cual (también los que no define el
+  propio módulo), así que el nombre viaja en una propiedad personalizada, que no toca.
+*/
+
+.anim {
+  --k-draw: dlx-draw;
+  --k-settle: dlx-settle;
+  --k-fade: dlx-fade;
+}
+
+.novedad .trazo {
+  animation: var(--k-draw) var(--dur-draw) steps(10, end) both;
+}
+
+.novedad .falta {
+  animation: var(--k-fade) var(--dur-base) var(--ease-standard) var(--dur-draw) both;
+}
+
+.novedad .nudo {
+  animation: var(--k-fade) var(--dur-fast) var(--ease-standard) var(--delay, 0ms) both;
+}
+
+.novedad .disco {
+  transform-box: view-box;
+  transform-origin: var(--ox) var(--oy);
+  animation: var(--k-settle) var(--dur-slow) var(--ease-out) 900ms both;
+}
+
+.novedad .relleno {
+  animation: inicio-sube var(--dur-slow) var(--ease-out) 1260ms both;
+}
+
+.novedad .cifra,
+.novedad .llamada {
+  animation: var(--k-fade) var(--dur-base) var(--ease-standard) 1620ms both;
+}
+
+/* El relleno sube desde el fondo del disco hasta su nivel (el área es el % real) */
+@keyframes inicio-sube {
+  from { transform: translateY(var(--h)); }
+  to { transform: none; }
+}
+
+/* Con «reducir movimiento», el estado final sin esperar a ningún retardo */
+@media (prefers-reduced-motion: reduce) {
+  .novedad * { animation: none !important; }
+}
