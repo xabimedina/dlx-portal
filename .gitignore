@@ -42,3 +42,9 @@ next-env.d.ts
 
 # salidas de los scripts de auditoria/reset (informes y volcados de produccion)
 /scripts/out/
+
+# build de los tests E2E (dlx-e2e)
+.next-e2e/
+
+.vercel
+.env*

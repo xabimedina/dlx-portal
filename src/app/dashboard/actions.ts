@@ -93,11 +93,8 @@ export async function getSignedDocumentUrlAction(storagePath: string): Promise<s
 
   try {
     const { adminBucket } = await import('@/lib/firebase/admin');
-    const [url] = await adminBucket().file(storagePath).getSignedUrl({
-      action: 'read',
-      expires: Date.now() + 60 * 1000,
-    });
-    return url;
+    const { getStorageReadUrl } = await import('@/lib/firebase/storage-read-url');
+    return await getStorageReadUrl(adminBucket(), storagePath, Date.now() + 60 * 1000);
   } catch (error: any) {
     console.error(`Error al generar la URL firmada para ${storagePath}:`, error);
     throw new Error("No se pudo generar la firma temporal de descarga del archivo.");

@@ -1,0 +1,67 @@
+/* Visor 3D de la maqueta: lo que Tailwind no cubre bien, acotado a .m3d. Las
+   píldoras de estancia y los pines los crea el módulo (src/lib/visor3d) dentro
+   del lienzo. Lienzo claro (papel) desde el 2026-10-28; la imagen abierta
+   sigue sobre Jet, como una sala a oscuras. */
+.m3d {
+  --m3d-jet: #333533; --m3d-jet-950: #1e201e; --m3d-jet-900: #262826; --m3d-jet-700: #43463f;
+  --m3d-jet-500: #6e726b; --m3d-jet-400: #8c9089; --m3d-jet-300: #aeb1ab; --m3d-smoke: #f5f3f4;
+  --m3d-saffron: #eeba0b; --m3d-papel: #f1efeb;
+  /* Superficies sobre el papel */
+  --m3d-line: rgba(30, 32, 30, .1); --m3d-line-strong: rgba(30, 32, 30, .18);
+  --m3d-surface: rgba(255, 255, 255, .86); --m3d-hover: rgba(30, 32, 30, .05);
+  /* Superficies de la imagen abierta (oscura) */
+  --m3d-dark-line: rgba(245, 243, 244, .14); --m3d-dark-line-strong: rgba(245, 243, 244, .26);
+  --m3d-display: var(--font-kanit), "Kanit", system-ui, sans-serif;
+  --m3d-body: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+  --m3d-ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Nada se arrastra ni se guarda desde el visor */
+.m3d img, .m3d .m3d-img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }
+.m3d .m3d-frame { -webkit-touch-callout: none; }
+
+.m3d .m3d-lbl {
+  pointer-events: auto; appearance: none; font: 500 11px/1 var(--m3d-body); letter-spacing: .02em;
+  color: var(--m3d-jet-950); background: rgba(255, 255, 255, .9); border: 1px solid var(--m3d-line-strong);
+  border-radius: 999px; padding: 5px 10px; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(30, 32, 30, .06);
+  transition: background .14s var(--m3d-ease), border-color .14s var(--m3d-ease), color .14s var(--m3d-ease);
+}
+.m3d .m3d-lbl:hover { background: #fff; border-color: rgba(30, 32, 30, .32); }
+.m3d .m3d-lbl.on { background: var(--m3d-saffron); color: var(--m3d-jet-950); border-color: var(--m3d-saffron); font-weight: 600; }
+.m3d .m3d-pin {
+  pointer-events: auto; appearance: none; width: 30px; height: 30px; border-radius: 50%; padding: 0;
+  background: #fff; border: 1.5px solid var(--m3d-saffron); color: var(--m3d-jet-950);
+  display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 3px rgba(30, 32, 30, .12);
+  transition: background .14s var(--m3d-ease), color .14s var(--m3d-ease);
+}
+.m3d .m3d-pin:hover { background: var(--m3d-saffron); color: var(--m3d-jet-950); }
+.m3d .m3d-lbl:focus-visible, .m3d .m3d-pin:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(238, 186, 11, .55); }
+
+/* Carril de corte: deslizador vertical */
+.m3d .m3d-cut { position: relative; width: 28px; height: 170px; }
+.m3d .m3d-cut input {
+  position: absolute; top: 50%; left: 50%; width: 170px; height: 28px; margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg); accent-color: var(--m3d-saffron); cursor: pointer; background: transparent;
+}
+@media (max-width: 1023px) {
+  .m3d .m3d-cut { height: 120px; }
+  .m3d .m3d-cut input { width: 120px; }
+}
+
+/* Marcador de imagen sin archivo (pruebas) */
+.m3d .m3d-hatch {
+  background: repeating-linear-gradient(135deg, rgba(245, 243, 244, .13) 0 1px, transparent 1px 7px), var(--m3d-jet-900);
+  color: var(--m3d-saffron);
+}
+
+.m3d .m3d-chips { scrollbar-width: none; }
+.m3d .m3d-frame .m3d-scroll { scrollbar-width: thin; scrollbar-color: rgba(30, 32, 30, .2) transparent; }
+.m3d .m3d-chips::-webkit-scrollbar { display: none; }
+
+.m3d .m3d-fade { opacity: 0; transition: opacity .22s var(--m3d-ease); }
+.m3d .m3d-fade.show { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .m3d *, .m3d .m3d-fade { transition: none !important; }
+}

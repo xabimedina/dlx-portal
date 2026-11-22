@@ -1,0 +1,12 @@
+# Nunca subir a Vercel: secretos locales, dependencias, builds y volcados
+.env
+.env.*
+!.env.example
+node_modules
+dist
+.next
+.next-e2e
+scripts/out
+.claude
+.tanstack
+*.log

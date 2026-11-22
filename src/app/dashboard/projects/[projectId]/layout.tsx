@@ -1,7 +1,7 @@
 import React from "react";
 import { Mail } from "lucide-react";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
-import { getProjectsForProfile, getDecisions } from "@/lib/firebase/db";
+import { getProjectsForProfile, getDecisions, getModel3dPublished } from "@/lib/firebase/db";
 import { sortClientProjects } from "@/lib/project-sort";
 import { AccessRestricted } from "@/components/access-restricted";
 import { BrandLogo } from "@/components/brand-logo";
@@ -38,16 +38,20 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
 
   const { profile, project } = access;
 
-  // Proyectos del cliente (selector del header) + decisiones (dot ámbar del tab)
+  // Proyectos del cliente (selector del header) + decisiones (dot ámbar del tab) + si hay maqueta (atajo)
   let clientProjects: { id: string; name: string; status?: string }[] = [];
   let hasPendingDecisions = false;
+  let hasMaqueta = false;
   try {
-    const [projects, decisions] = await Promise.all([
+    const [projects, decisions, maqueta] = await Promise.all([
       profile.role === "client" ? getProjectsForProfile(profile) : Promise.resolve([project]),
       getDecisions(project.id),
+      // Un fallo de la maqueta no tumba la navegación: solo se queda sin atajo
+      getModel3dPublished(project.id).catch(() => null),
     ]);
     clientProjects = sortClientProjects(projects || []);
     hasPendingDecisions = (decisions || []).some((d) => d.status === "Pendiente");
+    hasMaqueta = maqueta !== null;
   } catch (err) {
     console.error("Error cargando datos del layout de proyecto:", err);
     clientProjects = [project];
@@ -87,6 +91,7 @@ export default async function ProjectLayout({ children, params }: ProjectLayoutP
         projectId={project.id}
         showDecisionsDot={hasPendingDecisions}
         showHandover={project.current_stage === "handover" || project.status === "Finalizado"}
+        showMaqueta={hasMaqueta}
       />
 
       {/* Contenido: hueco para el raíl en desktop y para la tab bar en móvil */}

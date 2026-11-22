@@ -3,18 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home, Layers, CheckSquare, CalendarDays, FileImage, FolderArchive, HardHat, Key,
+  Home, Layers, Box, CheckSquare, CalendarDays, FileImage, FolderArchive, HardHat, Key,
 } from "lucide-react";
 
 /**
  * Navegación persistente del portal cliente: tab bar inferior en móvil y raíl
  * lateral izquierdo en desktop (≥1024px). Todas las secciones viven aquí;
  * «Entrega» solo aparece cuando el proyecto llega a esa etapa.
+ *
+ * «Maqueta» (página propia a pantalla completa) solo aparece si la obra
+ * tiene una versión publicada.
  */
 
 const TABS = [
   { slug: "", label: "Inicio", icon: Home },
   { slug: "phases", label: "El camino", icon: Layers },
+  { slug: "maqueta", label: "Maqueta", icon: Box },
   { slug: "decisions", label: "Decisiones", icon: CheckSquare },
   { slug: "meetings", label: "Reuniones", icon: CalendarDays },
   { slug: "photos", label: "Fotos", icon: FileImage },
@@ -29,13 +33,16 @@ interface NavTabsProps {
   showDecisionsDot: boolean;
   /** «Entrega» solo se lista en etapa de entrega o proyecto finalizado. */
   showHandover: boolean;
+  /** «Maqueta» solo se lista si hay una versión publicada. */
+  showMaqueta: boolean;
 }
 
-export function NavTabs({ projectId, showDecisionsDot, showHandover }: NavTabsProps) {
+export function NavTabs({ projectId, showDecisionsDot, showHandover, showMaqueta }: NavTabsProps) {
   const pathname = usePathname();
   const base = `/dashboard/projects/${projectId}`;
 
-  const items = TABS.filter((tab) => tab.slug !== "handover" || showHandover).map((tab) => {
+  const visibles = TABS.filter((tab) => (tab.slug !== "handover" || showHandover) && (tab.slug !== "maqueta" || showMaqueta));
+  const items = visibles.map((tab) => {
     const href = tab.slug ? `${base}/${tab.slug}` : base;
     const active = tab.slug ? pathname.startsWith(href) : pathname === base;
     const withDot = tab.slug === "decisions" && showDecisionsDot;

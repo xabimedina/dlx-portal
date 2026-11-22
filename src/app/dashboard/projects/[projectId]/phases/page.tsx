@@ -1,9 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Layers, Calendar, Check, Sparkles, ArrowUpRight, Download
+  Layers, Calendar, Check, Sparkles, ArrowUpRight, ArrowRight, Box, Download
 } from "lucide-react";
-import { getPhases, getMeetings, getDecisions, getDocuments } from "@/lib/firebase/db";
+import { getPhases, getMeetings, getDecisions, getDocuments, getModel3dPublished } from "@/lib/firebase/db";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
 import { AccessRestricted } from "@/components/access-restricted";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { getPhaseDelay } from "@/lib/phase-delay";
 import { phaseStatusClientLabel } from "@/lib/phase-status-client";
 import { isConfirmedMeeting } from "@/lib/actions-aggregator";
 import { formatDateEs } from "@/lib/format-date-es";
+import { etiquetaVersion } from "@/lib/model3d/maqueta";
 
 interface PageProps {
   params: Promise<{
@@ -34,6 +35,12 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
       />
     );
   }
+  // ¿Hay maqueta publicada? Solo para el enlace a su página; si falla, la página sigue sin él
+  const maquetaPromesa = getModel3dPublished(projectId).catch((err) => {
+    console.error("Error consultando la maqueta 3D:", err);
+    return null;
+  });
+
   let phases: any[] = [];
   let meetings: any[] = [];
   let decisions: any[] = [];
@@ -56,6 +63,7 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
 
   // Las actas borrador no existen para el cliente
   meetings = meetings.filter(isConfirmedMeeting);
+  const maqueta = await maquetaPromesa;
 
   // Formateador de bytes
   const formatBytes = (bytes: number | null): string => {
@@ -289,6 +297,23 @@ export default async function ClientProjectPhasesPage({ params }: PageProps) {
           );
         })}
       </div>
+
+      {/* Enlace a la maqueta 3D (tiene página propia a pantalla completa) */}
+      {maqueta && (
+        <Link
+          href={`/dashboard/projects/${projectId}/maqueta`}
+          className="group flex items-center justify-between gap-4 rounded-3xl border border-zinc-200/70 bg-white px-5 py-4 transition-colors hover:border-zinc-300 dark:border-zinc-800/70 dark:bg-zinc-900 dark:hover:border-zinc-700"
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            <Box className="h-5 w-5 shrink-0 text-amber-500" aria-hidden />
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-zinc-900 dark:text-white">Tu maqueta 3D</span>
+              <span className="block truncate text-xs text-zinc-500">Cómo está tu vivienda, qué se derriba y cómo quedará · {etiquetaVersion(maqueta)}</span>
+            </span>
+          </span>
+          <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </Link>
+      )}
 
     </div>
   );
