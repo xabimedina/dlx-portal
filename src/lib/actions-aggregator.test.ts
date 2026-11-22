@@ -14,6 +14,7 @@ describe("buildClientActions", () => {
         { id: "d2", title: "Campana", status: "Pendiente", priority: "Urgente", due_date: "2026-06-10", created_at: "b", studio_recommendation: "La de techo" },
         { id: "d3", title: "Pintura", status: "Pendiente", priority: "Urgente", due_date: "2026-06-03", created_at: "c" },
       ],
+      today: "2026-05-20",
     });
     expect(actions.map((a) => a.key)).toEqual(["dec-d3", "dec-d2", "dec-d1"]);
     expect(actions[1]).toMatchObject({
@@ -175,5 +176,13 @@ describe("textsMatch", () => {
     expect(
       textsMatch("Campana extractora de techo", "Confirmar la compra de los sanitarios empotrados")
     ).toBe(false);
+  });
+
+  it("un plazo vencido no dice «antes del…»: dice cuándo era y es urgente", () => {
+    const { actions } = buildClientActions({
+      decisions: [{ id: "d1", title: "Grifería", status: "Pendiente", priority: "Media", due_date: "2026-11-09", created_at: "a" }],
+      today: "2026-11-20",
+    });
+    expect(actions[0]).toMatchObject({ origin: "el plazo era el 9 de noviembre", urgent: true });
   });
 });

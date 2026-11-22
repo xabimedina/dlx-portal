@@ -421,7 +421,8 @@ function mapQuote(quote, catalogById) {
       address: str(client.address),
     },
     vatRate: num(quote.vatRate, 0, `${where} (IVA)`),
-    commercialDiscount: num(quote.commercialDiscount, 0, `${where} (descuento comercial)`),
+    // Sin `commercialDiscount`: el estudio ya no hace descuentos comerciales, el
+    // cálculo no lo lee y la auditoría lo marca como campo obsoleto.
     managementRate: num(quote.managementRate, 0, `${where} (gestión)`),
     accessDifficulty: accessDifficulty(quote.accessDifficulty),
     accessDifficultyAmount: num(quote.accessDifficultyAmount, 0, `${where} (dificultad de acceso)`),

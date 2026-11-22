@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Reset de los módulos Obras y Presupuestos en el proyecto REAL `despejalapp`.
+ * Reset de los módulos Obras, Presupuestos y Comparador en el proyecto REAL
+ * `despejalapp`.
  *
  * Borra, y solo puede borrar, lo que está en la LISTA BLANCA de abajo:
  *   - presupuestos_config, presupuestos_suppliers, presupuestos_catalog,
  *     presupuestos_quotes, presupuestos_revit_mappings, presupuestos_revit (recursivo)
  *   - portal_projects (recursivo: phases, decisions, meetings, documents,
  *     weeklyUpdates, photos, requests), portal_clients
- *   - Storage: ficheros bajo portal/projects/
+ *   - comparador_products (los productos del Comparador)
+ *   - Storage: ficheros bajo portal/projects/ y bajo comparador/products/
+ *     (las fotos de los productos del Comparador)
  *
  * NUNCA toca users, results, mail, projects, web, blog, portal_users,
  * config/calculator ni las cuentas de Auth: ninguna referencia a esas rutas
@@ -21,6 +24,9 @@
  *   # 2. Borrado real: exige los DOS flags.
  *   node --env-file=.env.local scripts/reset-modulos.mjs --apply --confirmo-borrar-despejalapp
  *
+ *   # Reset completo conservando la configuración de empresa (presupuestos_config/company):
+ *   node --env-file=.env.local scripts/reset-modulos.mjs --conservar-empresa [--apply --confirmo-borrar-despejalapp]
+ *
  *   # Solo los datos de prueba del recorrido E2E (prefijo «E2E-» en nombre/título):
  *   node --env-file=.env.local scripts/reset-modulos.mjs --solo-e2e [--apply --confirmo-borrar-despejalapp]
  *
@@ -31,6 +37,11 @@
  * Antes de borrar guarda un volcado JSON completo de los documentos afectados
  * en scripts/out/backup-reset-<fecha>.json. Después vuelve a contar y falla
  * (exit 2) si queda algo del objetivo o si falta algo de la línea base.
+ *
+ * Probarlo SIN producción: con los emuladores de dlx-e2e arrancados, las
+ * variables FIRESTORE_EMULATOR_HOST y FIREBASE_STORAGE_EMULATOR_HOST (las dos)
+ * y la cuenta de servicio falsa del E2E en FIREBASE_SERVICE_ACCOUNT_KEY, en vez
+ * de --env-file=.env.local. Ver ON_EMULATORS más abajo.
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
@@ -54,9 +65,12 @@ const PLAIN_COLLECTIONS = [
   "presupuestos_quotes",
   "presupuestos_revit_mappings",
   "portal_clients",
+  "comparador_products",
 ];
 const RECURSIVE_COLLECTIONS = ["presupuestos_revit", "portal_projects"];
-const STORAGE_PREFIX = "portal/projects/";
+const PORTAL_PREFIX = "portal/projects/";
+const PRODUCTS_PREFIX = "comparador/products/";
+const STORAGE_PREFIXES = [PORTAL_PREFIX, PRODUCTS_PREFIX];
 /* Colecciones de la línea base (se leen para comprobar que siguen intactas). */
 const BASELINE_COLLECTIONS = ["users", "results", "mail", "projects", "web", "blog", "portal_users"];
 
@@ -66,11 +80,12 @@ const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
 const CONFIRMED = args.includes("--confirmo-borrar-despejalapp");
 const SOLO_E2E = args.includes("--solo-e2e");
+const CONSERVAR_EMPRESA = args.includes("--conservar-empresa");
 const baseAt = args.indexOf("--linea-base");
 const BASELINE_FILE = baseAt >= 0 ? args[baseAt + 1] : null;
 const E2E_PREFIX = "E2E-";
 
-const known = new Set(["--apply", "--confirmo-borrar-despejalapp", "--solo-e2e", "--linea-base", BASELINE_FILE]);
+const known = new Set(["--apply", "--confirmo-borrar-despejalapp", "--solo-e2e", "--conservar-empresa", "--linea-base", BASELINE_FILE]);
 const unknown = args.filter((a) => !known.has(a));
 if (unknown.length) {
   console.error(`Flags desconocidos: ${unknown.join(" ")}`);
@@ -100,10 +115,37 @@ function serviceAccount() {
   return parsed;
 }
 
+/* ── Emuladores (solo para probar este script) ─────────────────────────────────
+ * Con FIRESTORE_EMULATOR_HOST el Admin SDK ya habla con el emulador de
+ * Firestore; Storage aquí va por la API JSON y hay que redirigirlo a mano. Se
+ * exigen las DOS variables: medio script contra producción y medio contra el
+ * emulador sería peor que no poder probarlo. */
+const FIRESTORE_EMULATOR = process.env.FIRESTORE_EMULATOR_HOST;
+const STORAGE_EMULATOR = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+if (Boolean(FIRESTORE_EMULATOR) !== Boolean(STORAGE_EMULATOR)) {
+  console.error("Para los emuladores hacen falta FIRESTORE_EMULATOR_HOST y FIREBASE_STORAGE_EMULATOR_HOST, las dos.");
+  process.exit(1);
+}
+const ON_EMULATORS = Boolean(FIRESTORE_EMULATOR);
+const STORAGE_API = ON_EMULATORS
+  ? `http://${STORAGE_EMULATOR}/storage/v1`
+  : "https://storage.googleapis.com/storage/v1";
+
 const credentials = serviceAccount();
 initializeApp({ credential: cert(credentials) });
 const db = getFirestore();
 const apiClient = await new GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/cloud-platform"] }).getClient();
+
+/** Petición a la API JSON de Storage: la real con el cliente autenticado, o el emulador. */
+async function storageRequest({ url, method = "GET", params = {} }) {
+  if (!ON_EMULATORS) return apiClient.request({ url, method, params });
+  const target = new URL(url);
+  for (const [key, value] of Object.entries(params)) target.searchParams.set(key, String(value));
+  const response = await fetch(target, { method, headers: { Authorization: "Bearer owner" } });
+  if (!response.ok) throw new Error(`${method} ${target} → ${response.status} ${await response.text()}`);
+  const text = await response.text();
+  return { data: text ? JSON.parse(text) : {} };
+}
 
 /* Storage por la API JSON (ver nota en audit-produccion.mjs: la librería de
  * Storage del Admin SDK no funciona en Node 24). */
@@ -113,15 +155,15 @@ async function storageList(prefix) {
   do {
     const params = { prefix, fields: "items(name),nextPageToken", maxResults: 1000 };
     if (pageToken) params.pageToken = pageToken;
-    const { data } = await apiClient.request({ url: `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o`, params });
+    const { data } = await storageRequest({ url: `${STORAGE_API}/b/${BUCKET}/o`, params });
     for (const item of data.items ?? []) names.push(item.name);
     pageToken = data.nextPageToken;
   } while (pageToken);
   return names;
 }
 async function storageDelete(name) {
-  await apiClient.request({
-    url: `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(name)}`,
+  await storageRequest({
+    url: `${STORAGE_API}/b/${BUCKET}/o/${encodeURIComponent(name)}`,
     method: "DELETE",
   });
 }
@@ -148,12 +190,17 @@ async function dumpRecursive(ref) {
 const targets = { plain: {}, recursive: {}, storage: [] };
 let totalDocs = 0;
 
-console.log(`\n${DRY_RUN ? "SIMULACIÓN" : "BORRADO REAL"} · proyecto ${PROJECT} · modo ${SOLO_E2E ? `solo E2E (prefijo «${E2E_PREFIX}»)` : "completo"}\n`);
+console.log(`\n${DRY_RUN ? "SIMULACIÓN" : "BORRADO REAL"} · proyecto ${PROJECT}${ON_EMULATORS ? " (EMULADORES LOCALES)" : ""} · modo ${SOLO_E2E ? `solo E2E (prefijo «${E2E_PREFIX}»)` : "completo"}\n`);
 
 for (const col of PLAIN_COLLECTIONS) {
   if (SOLO_E2E && (col === "presupuestos_config" || col === "presupuestos_revit_mappings")) continue;
   const snap = await db.collection(col).get();
-  const docs = snap.docs.filter((d) => !SOLO_E2E || isE2E(d.data()));
+  const docs = snap.docs.filter((d) => {
+    if (SOLO_E2E && !isE2E(d.data())) return false;
+    // La ficha de empresa es del usuario, no dato de prueba: se conserva si se pide.
+    if (CONSERVAR_EMPRESA && col === "presupuestos_config" && d.id === "company") return false;
+    return true;
+  });
   targets.plain[col] = docs.map((d) => ({ id: d.id, data: d.data() }));
   totalDocs += docs.length;
   console.log(`  ${col.padEnd(30)} ${String(docs.length).padStart(5)} docs${SOLO_E2E ? ` (de ${snap.size})` : ""}`);
@@ -176,11 +223,18 @@ for (const col of RECURSIVE_COLLECTIONS) {
   if (targets.recursive[col].length === 0) console.log(`  ${col.padEnd(30)}     0 docs`);
 }
 
-const allPortalFiles = await storageList(STORAGE_PREFIX);
-targets.storage = SOLO_E2E
-  ? allPortalFiles.filter((n) => e2eProjectIds.some((id) => n.startsWith(`${STORAGE_PREFIX}${id}/`)))
-  : allPortalFiles;
-console.log(`  ${"Storage portal/projects/**".padEnd(30)} ${String(targets.storage.length).padStart(5)} ficheros${SOLO_E2E ? ` (de ${allPortalFiles.length})` : ""}`);
+// Con --solo-e2e, solo los ficheros de las obras y de los productos E2E: las
+// fotos de producto viven en comparador/products/{idDeProducto}/.
+const e2eProductIds = (targets.plain.comparador_products ?? []).map((d) => d.id);
+const ownersByPrefix = { [PORTAL_PREFIX]: e2eProjectIds, [PRODUCTS_PREFIX]: e2eProductIds };
+for (const prefix of STORAGE_PREFIXES) {
+  const all = await storageList(prefix);
+  const selected = SOLO_E2E
+    ? all.filter((n) => ownersByPrefix[prefix].some((id) => n.startsWith(`${prefix}${id}/`)))
+    : all;
+  targets.storage.push(...selected);
+  console.log(`  ${`Storage ${prefix}**`.padEnd(30)} ${String(selected.length).padStart(5)} ficheros${SOLO_E2E ? ` (de ${all.length})` : ""}`);
+}
 
 console.log(`\n  Total: ${totalDocs} documentos y ${targets.storage.length} ficheros.`);
 
@@ -249,12 +303,15 @@ let failed = false;
 if (!SOLO_E2E) {
   for (const col of [...PLAIN_COLLECTIONS, ...RECURSIVE_COLLECTIONS]) {
     const n = (await db.collection(col).count().get()).data().count;
-    console.log(`  ${col.padEnd(30)} ${n === 0 ? "vacía" : `QUEDAN ${n}`}`);
-    if (n !== 0) failed = true;
+    const expected = CONSERVAR_EMPRESA && col === "presupuestos_config" ? 1 : 0;
+    console.log(`  ${col.padEnd(30)} ${n === expected ? (expected ? "solo company" : "vacía") : `QUEDAN ${n}`}`);
+    if (n !== expected) failed = true;
   }
-  const left = await storageList(STORAGE_PREFIX);
-  console.log(`  ${"Storage portal/projects/**".padEnd(30)} ${left.length === 0 ? "vacío" : `QUEDAN ${left.length}`}`);
-  if (left.length) failed = true;
+  for (const prefix of STORAGE_PREFIXES) {
+    const left = await storageList(prefix);
+    console.log(`  ${`Storage ${prefix}**`.padEnd(30)} ${left.length === 0 ? "vacío" : `QUEDAN ${left.length}`}`);
+    if (left.length) failed = true;
+  }
 }
 const baselineAfter = await baselineSnapshot();
 for (const col of BASELINE_COLLECTIONS) {

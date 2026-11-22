@@ -208,3 +208,67 @@ export interface PortalRequest {
   status: RequestStatus;
   created_at: string;
 }
+
+// ---------------------------------------------------------------------------
+// Maqueta 3D (visor actual / reformado). Subcolecciones de portal_projects:
+// model3d/{versionId} y model3dImages/{imageId}; ficheros en Storage bajo
+// portal/projects/{projectId}/model3d/… y …/model3d-images/…
+// ---------------------------------------------------------------------------
+
+export type Model3dVersionStatus = "borrador" | "publicada" | "archivada";
+export type Model3dEstado = "actual" | "reformado";
+export type Model3dImagenTipo = "foto" | "render";
+
+/** Una versión del modelo: tres capas GLB + modelo_web.json. Solo una publicada a la vez. */
+export interface PortalModel3dVersion {
+  id: string;
+  project_id: string;
+  /** Correlativo por obra: 1, 2, 3… */
+  version: number;
+  /** «v2 — tras reunión 12/10» */
+  label: string;
+  status: Model3dVersionStatus;
+  /** Rutas de Storage (no URLs): portal/projects/{id}/model3d/{versionId}/conservado.glb… */
+  conservado_path: string;
+  /** null mientras no haya demoliciones ni obra nueva (al principio de la obra solo hay estado actual) */
+  demolido_path: string | null;
+  nuevo_path: string | null;
+  modelo_web_path: string;
+  sizes: { conservado: number; demolido: number | null; nuevo: number | null; modelo_web: number };
+  /** Resumen del JSON para la lista del admin sin descargarlo */
+  summary: {
+    estancias_actual: number;
+    estancias_reformado: number;
+    camaras: number;
+    avisos: string[];
+  };
+  /** Estancias y cámaras de cada estado: el admin asigna imágenes sin descargar el JSON */
+  indice: Record<Model3dEstado, {
+    estancias: Array<{ id: string; nombre: string }>;
+    camaras: Array<{ id: string; estancia: string }>;
+  }>;
+  created_at: string;
+  published_at: string | null;
+}
+
+/** Foto de la visita (estado actual) o render (reformado), atada a una estancia y, si se pudo, a su cámara. */
+export interface PortalModel3dImagen {
+  id: string;
+  project_id: string;
+  estado: Model3dEstado;
+  tipo: Model3dImagenTipo;
+  /** Id de estancia del modelo_web.json (WEB_ID) */
+  estancia_id: string;
+  /** «WEB_salon_01» o null si no se pudo asignar */
+  camara_id: string | null;
+  titulo: string | null;
+  orden: number;
+  /** Rutas de Storage: …/model3d-images/{imageId}/image.webp (o .jpg) y thumbnail */
+  storage_path: string;
+  thumbnail_storage_path: string;
+  width: number | null;
+  height: number | null;
+  original_file_size: number | null;
+  compressed_file_size: number | null;
+  created_at: string;
+}

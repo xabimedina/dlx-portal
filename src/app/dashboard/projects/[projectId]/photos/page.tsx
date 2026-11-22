@@ -4,6 +4,7 @@ import { withSignedPhotoUrls } from "@/lib/firebase/storage-urls";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
 import { AccessRestricted } from "@/components/access-restricted";
 import { isConfirmedMeeting } from "@/lib/actions-aggregator";
+import type { PortalMeeting, PortalPhase, PortalPhoto, PortalWeeklyUpdate } from "@/types/portal";
 import { PhotosClient } from "./photos-client";
 
 interface PageProps {
@@ -21,10 +22,10 @@ export default async function ClientPhotosPage({ params }: PageProps) {
   }
   const { profile, project } = access;
 
-  let phases: any[] = [];
-  let weeklyUpdates: any[] = [];
-  let photos: any[] = [];
-  let meetings: any[] = [];
+  let phases: PortalPhase[] = [];
+  let weeklyUpdates: PortalWeeklyUpdate[] = [];
+  let photos: PortalPhoto[] = [];
+  let meetings: PortalMeeting[] = [];
 
   try {
     [phases, weeklyUpdates, photos, meetings] = await Promise.all([
@@ -49,6 +50,7 @@ export default async function ClientPhotosPage({ params }: PageProps) {
       weeklyUpdates={weeklyUpdates}
       meetings={meetings}
       projectId={project.id}
+      projectName={project.name}
       profile={profile}
     />
   );

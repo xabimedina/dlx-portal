@@ -134,7 +134,10 @@ export function buildClientActions(input: {
   meetings?: AggMeeting[];
   weeklyUpdates?: AggUpdate[];
   requests?: AggRequest[];
+  /** Hoy en ISO (aaaa-mm-dd), para saber si un plazo ya pasó. Por defecto, la fecha de Madrid. */
+  today?: string;
 }): { actions: ClientAction[]; studio: StudioItem[] } {
+  const today = input.today ?? new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(new Date());
   const {
     decisions = [],
     phases = [],
@@ -158,19 +161,21 @@ export function buildClientActions(input: {
       return String(a.created_at || "").localeCompare(String(b.created_at || ""));
     });
   for (const d of pending) {
+    // Un plazo vencido no puede decir «antes del…»: dice cuándo era y pasa a urgente
+    const overdue = !!d.due_date && d.due_date.slice(0, 10) < today;
     actions.push({
       key: `dec-${d.id}`,
       verb: "Decidir",
       title: d.title,
       origin: [
-        d.due_date ? `antes del ${formatDayMonthEs(d.due_date)}` : null,
+        d.due_date ? (overdue ? `el plazo era el ${formatDayMonthEs(d.due_date)}` : `antes del ${formatDayMonthEs(d.due_date)}`) : null,
         d.studio_recommendation ? "hay recomendación del estudio" : null,
       ]
         .filter(Boolean)
         .join(" · "),
       section: "decisions",
       dueDateIso: d.due_date ?? null,
-      urgent: d.priority === "Urgente",
+      urgent: d.priority === "Urgente" || overdue,
       hasRecommendation: !!d.studio_recommendation,
     });
   }

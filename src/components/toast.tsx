@@ -52,27 +52,31 @@ export function ToastViewport({
   onDismiss: () => void;
 }) {
   if (!toast) return null;
+  // Sistema revisado: blanco, 12 px, sombra media, entra 8 px en 220 ms. El Saffron no se
+  // gasta aquí (es «ahora» y ya tiene su pieza en la pantalla); el error lo dice la palabra
+  // y el icono, en tinta, con el filete de peligro solo en el borde.
   return (
-    <div className="fixed bottom-20 right-6 z-[110] animate-in slide-in-from-bottom-5 duration-300 lg:bottom-6">
+    <div
+      role={toast.type === "error" ? "alert" : "status"}
+      className="fixed inset-x-4 bottom-24 z-[110] flex justify-end animate-dlx-rise sm:inset-x-auto sm:right-6 lg:bottom-6"
+    >
       <div
-        className={`flex items-center space-x-3 px-4 py-3 rounded-2xl border backdrop-blur-md shadow-lg ${
-          toast.type === "success"
-            ? "bg-zinc-900/95 text-white border-zinc-800 dark:bg-white/95 dark:text-zinc-950 dark:border-zinc-200"
-            : "bg-amber-500/95 text-zinc-900 border-amber-600"
+        className={`flex max-w-sm items-start gap-3 rounded-lg border bg-white px-4 py-3 text-ink shadow-[0_8px_24px_rgba(30,32,30,0.10)] ${
+          toast.type === "success" ? "border-border" : "border-danger-ink/40"
         }`}
       >
         {toast.type === "success" ? (
-          <Check className="h-4.5 w-4.5 bg-zinc-500/20 p-0.5 rounded-full shrink-0" />
+          <Check className="mt-0.5 size-[18px] shrink-0 text-ink" aria-hidden />
         ) : (
-          <AlertCircle className="h-4.5 w-4.5 shrink-0" />
+          <AlertCircle className="mt-0.5 size-[18px] shrink-0 text-danger-ink" aria-hidden />
         )}
-        <span className="text-xs font-mono font-medium">{toast.message}</span>
+        <span className="text-sm font-medium leading-snug">{toast.message}</span>
         <button
           onClick={onDismiss}
-          className="opacity-60 hover:opacity-100 transition-opacity ml-2 shrink-0"
+          className="-m-2 ml-1 grid size-9 shrink-0 place-items-center rounded-full text-ink-mute hover:bg-zinc-100 hover:text-ink"
           aria-label="Cerrar aviso"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="size-4" aria-hidden />
         </button>
       </div>
     </div>

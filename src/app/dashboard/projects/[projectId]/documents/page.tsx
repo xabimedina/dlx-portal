@@ -2,6 +2,8 @@ import React from "react";
 import { getPhases, getDocuments } from "@/lib/firebase/db";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
 import { AccessRestricted } from "@/components/access-restricted";
+import { todayIso } from "@/lib/phase-delay";
+import type { PortalDocument, PortalPhase } from "@/types/portal";
 import { DocumentsClient } from "./documents-client";
 
 interface PageProps {
@@ -17,10 +19,10 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
   if (access.mode === "denied") {
     return <AccessRestricted message="No tienes autorización para acceder a los planos y contratos de este proyecto." />;
   }
-  const { profile, project } = access;
+  const { project } = access;
 
-  let phases: any[] = [];
-  let documents: any[] = [];
+  let phases: PortalPhase[] = [];
+  let documents: PortalDocument[] = [];
 
   try {
     [phases, documents] = await Promise.all([
@@ -33,10 +35,12 @@ export default async function ClientDocumentsPage({ params }: PageProps) {
 
   return (
     <DocumentsClient
-      documents={documents}
-      phases={phases}
+      documents={documents || []}
+      phases={phases || []}
       projectId={project.id}
-      profile={profile}
+      projectName={project.name}
+      // «Lo último» se calcula con la fecha del servidor: sin desajustes al hidratar
+      today={todayIso()}
     />
   );
 }

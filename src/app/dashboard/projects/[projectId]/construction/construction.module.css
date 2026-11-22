@@ -1,0 +1,25 @@
+/*
+  Diario de obra · el «momento de producto» de la pantalla: el rotulador Saffron que marca
+  en la regla de avance lo avanzado con el último parte. Se dibuja a 10 fps (steps(10)) en
+  --dur-draw, y solo cuando el parte es nuevo para quien mira (clase .novedad, que pinta el
+  servidor con esNovedad). Sin la clase, el trazo ya está dibujado.
+*/
+
+.marcador {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+.novedad .marcador {
+  animation: obra-rotulador var(--dur-draw) steps(10, end) 240ms both;
+}
+
+@keyframes obra-rotulador {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Con «reducir movimiento», directamente el estado final (sin esperar al retardo) */
+@media (prefers-reduced-motion: reduce) {
+  .novedad .marcador { animation: none; }
+}

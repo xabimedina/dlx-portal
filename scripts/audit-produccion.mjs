@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Auditoría de producción (SOLO LECTURA) del proyecto Firebase `despejalapp`
- * para los módulos Obras, Presupuestos y Parámetros de dlx-admin.
+ * para los módulos Obras, Presupuestos, Comparador y Parámetros de dlx-admin.
  *
  * No escribe nada en Firestore, Storage ni Auth. Produce un informe en consola
  * y un JSON en `scripts/out/` que sirve de línea base para comparar antes y
@@ -27,6 +27,12 @@
  * Con `--comparar <json>` además contrasta la línea base actual con la de un
  * informe anterior y sale con código 2 si algo de la línea base desapareció.
  * Código de salida 1 si hay errores (reglas, índice, sondas); 0 si todo bien.
+ *
+ * Probarlo SIN producción: con los emuladores de dlx-e2e arrancados, las
+ * variables FIRESTORE_EMULATOR_HOST y FIREBASE_STORAGE_EMULATOR_HOST (las dos)
+ * y la cuenta de servicio falsa del E2E en FIREBASE_SERVICE_ACCOUNT_KEY. En ese
+ * modo se omiten las reglas publicadas, el índice y las sondas (5, 6 y 8), que
+ * solo tienen sentido contra el proyecto real.
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
@@ -43,6 +49,9 @@ const RULES_FIRESTORE = path.join(WORKSPACE, "dlx-calculator-main", "firestore.r
 const RULES_STORAGE = path.join(WORKSPACE, "dlx-calculator-main", "storage.rules");
 const INDEXES_FILE = path.join(WORKSPACE, "dlx-calculator-main", "firestore.indexes.json");
 const ADMIN_PARAMS = path.join(WORKSPACE, "dlx-admin-main", "src", "server", "services", "calculator-params.ts");
+const PRODUCT_FAMILIES_FILE = path.join(WORKSPACE, "dlx-admin-main", "src", "lib", "comparador", "families.ts");
+/* Fotos de los productos del Comparador. */
+const PRODUCTS_PREFIX = "comparador/products/";
 const CALC_CONSTANTS = path.join(WORKSPACE, "dlx-calculator-main", "src", "pages", "form", "calculation", "utils", "constants.ts");
 const OUT_DIR = path.join(here, "out");
 
@@ -63,6 +72,7 @@ const MODULE_COLLECTIONS = {
     "presupuestos_revit_mappings",
     "presupuestos_revit",
   ],
+  comparador: ["comparador_products"],
 };
 /* Colecciones que este trabajo NO debe tocar: solo se cuentan y se listan ids. */
 const BASELINE_COLLECTIONS = ["users", "results", "mail", "projects", "web", "blog", "portal_users"];
@@ -87,11 +97,34 @@ function serviceAccount() {
   return parsed;
 }
 
+/* ── Emuladores (solo para probar este script) ─────────────────────────────────
+ * Igual que en reset-modulos.mjs: las DOS variables o ninguna. */
+const FIRESTORE_EMULATOR = process.env.FIRESTORE_EMULATOR_HOST;
+const STORAGE_EMULATOR = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+if (Boolean(FIRESTORE_EMULATOR) !== Boolean(STORAGE_EMULATOR)) {
+  console.error("Para los emuladores hacen falta FIRESTORE_EMULATOR_HOST y FIREBASE_STORAGE_EMULATOR_HOST, las dos.");
+  process.exit(1);
+}
+const ON_EMULATORS = Boolean(FIRESTORE_EMULATOR);
+const STORAGE_API = ON_EMULATORS
+  ? `http://${STORAGE_EMULATOR}/storage/v1`
+  : "https://storage.googleapis.com/storage/v1";
+
 const credentials = serviceAccount();
 initializeApp({ credential: cert(credentials) });
 const db = getFirestore();
 const googleAuth = new GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
 const apiClient = await googleAuth.getClient();
+
+/** Petición de lectura a la API JSON de Storage: la real o la del emulador. */
+async function storageGet(url, params) {
+  if (!ON_EMULATORS) return apiClient.request({ url, params });
+  const target = new URL(url);
+  for (const [key, value] of Object.entries(params)) target.searchParams.set(key, String(value));
+  const response = await fetch(target, { headers: { Authorization: "Bearer owner" } });
+  if (!response.ok) throw new Error(`GET ${target} → ${response.status} ${await response.text()}`);
+  return { data: await response.json() };
+}
 
 /**
  * Storage por la API JSON, no por `@google-cloud/storage`: esa librería arrastra
@@ -106,7 +139,7 @@ async function storageList(prefix, { delimiter } = {}) {
     const params = { prefix, fields: "items(name,size),prefixes,nextPageToken", maxResults: 1000 };
     if (delimiter) params.delimiter = delimiter;
     if (pageToken) params.pageToken = pageToken;
-    const { data } = await apiClient.request({ url: `https://storage.googleapis.com/storage/v1/b/${BUCKET}/o`, params });
+    const { data } = await storageGet(`${STORAGE_API}/b/${BUCKET}/o`, params);
     for (const item of data.items ?? []) names.push(item.name);
     for (const p of data.prefixes ?? []) prefixes.add(p);
     pageToken = data.nextPageToken;
@@ -119,6 +152,7 @@ async function storageList(prefix, { delimiter } = {}) {
 const report = {
   generatedAt: new Date().toISOString(),
   project: PROJECT,
+  onEmulators: ON_EMULATORS,
   inventory: {},
   baseline: {},
   storage: {},
@@ -154,7 +188,7 @@ async function listIds(ref) {
 }
 
 section("1. Inventario de los módulos");
-for (const col of [...MODULE_COLLECTIONS.obras, ...MODULE_COLLECTIONS.presupuestos]) {
+for (const col of [...MODULE_COLLECTIONS.obras, ...MODULE_COLLECTIONS.presupuestos, ...MODULE_COLLECTIONS.comparador]) {
   const ids = await listIds(db.collection(col));
   report.inventory[col] = { count: ids.length, ids };
   console.log(`  ${col.padEnd(32)} ${String(ids.length).padStart(5)} docs`);
@@ -204,6 +238,9 @@ console.log(`  carpetas raíz del bucket: ${prefixes.join(", ") || "(ninguna)"}`
 const portalFiles = (await storageList("portal/projects/")).names;
 report.storage.portalProjects = { count: portalFiles.length, names: portalFiles };
 console.log(`  ${"portal/projects/**".padEnd(32)} ${portalFiles.length} ficheros`);
+const productFiles = (await storageList(PRODUCTS_PREFIX)).names;
+report.storage.comparadorProducts = { count: productFiles.length, names: productFiles };
+console.log(`  ${`${PRODUCTS_PREFIX}**`.padEnd(32)} ${productFiles.length} ficheros (fotos de producto)`);
 for (const prefix of ["projects/images/", "projects/portrait/", "blog/images/"]) {
   const { names } = await storageList(prefix);
   report.storage[prefix] = { count: names.length };
@@ -214,7 +251,7 @@ for (const prefix of ["projects/images/", "projects/portrait/", "blog/images/"])
 
 section("3. Marcadores de datos de prueba");
 const TEST_RE = /\b(test|demo|prueba|e2e|seed)\b/i;
-for (const col of [...MODULE_COLLECTIONS.obras, ...MODULE_COLLECTIONS.presupuestos]) {
+for (const col of [...MODULE_COLLECTIONS.obras, ...MODULE_COLLECTIONS.presupuestos, ...MODULE_COLLECTIONS.comparador]) {
   const snap = await db.collection(col).get();
   for (const d of snap.docs) {
     const data = d.data();
@@ -347,6 +384,97 @@ for (const [year, seq] of Object.entries(highest)) {
 }
 report.inventory.counters = { stored: counters, highestByYear: highest };
 
+// comparador_products: la forma que escribe saveProduct del admin. Mismas
+// convenciones que Presupuestos (camelCase, fracciones 0–1, sin Timestamp) y
+// además: familia conocida, importes válidos, proveedor que existe, código
+// único, características completas y fotos que existen bajo su carpeta. Las
+// familias se leen del propio admin (families.ts no tiene imports a propósito
+// para poder cargarse desde aquí).
+let productFamilies = null;
+try {
+  const familiesModule = await import(pathToFileURL(PRODUCT_FAMILIES_FILE).href);
+  productFamilies = new Set(familiesModule.PRODUCT_FAMILIES.map((family) => family.id));
+} catch (error) {
+  finding("warn", "esquema", `No se pudieron cargar las familias de producto: ${error?.message || error}`);
+}
+const productFileSet = new Set(productFiles);
+const supplierIds = new Set((await db.collection("presupuestos_suppliers").select().get()).docs.map((d) => d.id));
+const PRODUCT_KEYS = new Set([
+  "id", "code", "family", "name", "brand", "model", "unit", "specs", "clientNote", "installation",
+  "images", "salePrice", "vatRateOverride", "listPrice", "supplierId", "discountOverride", "active", "updatedAt",
+]);
+
+function checkProduct(id, product) {
+  const issue = (message) => schemaIssue("comparador_products", id, message);
+  if (product.id !== id) issue(`campo id (${product.id}) ≠ id del documento`);
+  if (productFamilies && !productFamilies.has(product.family)) issue(`familia desconocida «${product.family}»`);
+  for (const f of ["code", "name", "brand", "model", "unit", "clientNote", "supplierId"]) {
+    if (typeof product[f] !== "string") issue(`${f} no es texto`);
+  }
+  if (!String(product.code ?? "").trim()) issue("sin código");
+  for (const f of ["salePrice", "listPrice"]) {
+    if (typeof product[f] !== "number" || !Number.isFinite(product[f]) || product[f] < 0) {
+      issue(`${f}=${JSON.stringify(product[f])} no es un importe válido`);
+    }
+  }
+  if (product.supplierId && !supplierIds.has(product.supplierId)) {
+    issue(`supplierId ${product.supplierId} no existe en presupuestos_suppliers`);
+  }
+  if (typeof product.active !== "boolean") issue("active no es booleano");
+  if (!ISO_RE.test(String(product.updatedAt))) issue(`updatedAt no es ISO: ${JSON.stringify(product.updatedAt)}`);
+  if (![null, "included", "excluded"].includes(product.installation)) {
+    issue(`installation=${JSON.stringify(product.installation)} (solo included, excluded o null)`);
+  }
+  if (!Array.isArray(product.specs)) issue("specs no es una lista");
+  else product.specs.forEach((spec, i) => {
+    if (typeof spec?.label !== "string" || typeof spec?.value !== "string" || !spec.label.trim() || !spec.value.trim()) {
+      issue(`specs[${i}] incompleta`);
+    }
+  });
+  const folder = `${PRODUCTS_PREFIX}${id}/`;
+  if (!Array.isArray(product.images)) issue("images no es una lista");
+  else product.images.forEach((image, i) => {
+    if (typeof image?.id !== "string" || !image.id) issue(`images[${i}] sin id`);
+    for (const f of ["path", "thumbPath"]) {
+      const value = image?.[f];
+      if (f === "thumbPath" && !value) continue; // sin miniatura se usa la foto grande
+      if (typeof value !== "string" || !value.startsWith(folder)) issue(`images[${i}].${f} fuera de ${folder}`);
+      else if (!productFileSet.has(value)) issue(`images[${i}].${f} apunta a un fichero que no está en Storage: ${value}`);
+    }
+    for (const f of ["width", "height"]) if (typeof image?.[f] !== "number") issue(`images[${i}].${f} no es un número`);
+    if (!ISO_RE.test(String(image?.uploadedAt))) issue(`images[${i}].uploadedAt no es ISO: ${JSON.stringify(image?.uploadedAt)}`);
+    for (const f of ["url", "thumbUrl"]) {
+      if (image?.[f] !== undefined && typeof image[f] !== "string") issue(`images[${i}].${f} no es texto`);
+    }
+  });
+  // El producto se enseña al cliente: un campo que sobre puede ser un dato interno colado.
+  const extra = Object.keys(product).filter((k) => !PRODUCT_KEYS.has(k));
+  if (extra.length) issue(`campos que no son del producto: ${extra.join(", ")}`);
+}
+
+const productsSnap = await db.collection("comparador_products").get();
+const productCodes = new Map();
+for (const d of productsSnap.docs) {
+  const data = d.data();
+  const ts = [];
+  walkTimestamps(data, [], ts);
+  if (ts.length) schemaIssue("comparador_products", d.id, `Timestamp en ${ts.join(", ")} (el módulo usa strings)`);
+  const snake = Object.keys(data).filter((k) => k.includes("_"));
+  if (snake.length) schemaIssue("comparador_products", d.id, `claves snake_case: ${snake.join(", ")}`);
+  checkRates("comparador_products", d.id, data);
+  checkProduct(d.id, data);
+  const code = String(data.code ?? "").trim();
+  if (code) productCodes.set(code, [...(productCodes.get(code) ?? []), d.id]);
+}
+for (const [code, ids] of productCodes) {
+  if (ids.length > 1) schemaIssue("comparador_products", ids.join(", "), `código repetido: ${code}`);
+}
+report.inventory.comparadorProducts = {
+  count: productsSnap.size,
+  active: productsSnap.docs.filter((d) => d.data().active !== false).length,
+};
+console.log(`  productos del comparador: ${productsSnap.size} (${report.inventory.comparadorProducts.active} activos)`);
+
 // config/calculator: forma completa.
 if (calcSnap.exists) {
   const data = calcSnap.data();
@@ -370,7 +498,8 @@ async function publishedRules(releaseId) {
   return { rulesetName: rel.rulesetName, updateTime: rel.updateTime, content: ruleset.source.files.map((f) => f.content).join("\n") };
 }
 const normalize = (s) => s.replace(/\r\n/g, "\n").trimEnd();
-for (const [label, releaseId, file] of [
+if (ON_EMULATORS) console.log("  omitido en emuladores (las reglas publicadas solo existen en el proyecto real)");
+for (const [label, releaseId, file] of ON_EMULATORS ? [] : [
   ["firestore", "cloud.firestore", RULES_FIRESTORE],
   ["storage", `firebase.storage/${BUCKET}`, RULES_STORAGE],
 ]) {
@@ -390,7 +519,9 @@ for (const [label, releaseId, file] of [
 /* ── 6. Índice decisions.id ────────────────────────────────────────────────── */
 
 section("6. Índice collection group decisions.id");
-try {
+if (ON_EMULATORS) {
+  console.log("  omitido en emuladores");
+} else try {
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/collectionGroups/decisions/fields/id`;
   const { data: field } = await apiClient.request({ url });
   const indexes = field.indexConfig?.indexes ?? [];
@@ -444,8 +575,8 @@ try {
 /* ── 8. Sondas anónimas (SDK cliente, sin token) ───────────────────────────── */
 
 section("8. Sondas anónimas de reglas (SDK cliente sin autenticar)");
-if (SIN_SONDAS) {
-  console.log("  omitidas (--sin-sondas)");
+if (SIN_SONDAS || ON_EMULATORS) {
+  console.log(ON_EMULATORS ? "  omitidas en emuladores" : "  omitidas (--sin-sondas)");
 } else {
   const { initializeApp: initClient, deleteApp } = await import("firebase/app");
   const { getFirestore: getClientDb, collection, getDocs, doc: clientDoc, getDoc: clientGetDoc, query, limit, terminate } = await import("firebase/firestore");
@@ -479,6 +610,7 @@ if (SIN_SONDAS) {
     const listCol = (name) => () => getDocs(query(collection(cdb, name), limit(1)));
     await probe("list presupuestos_catalog", true, listCol("presupuestos_catalog"));
     await probe("list presupuestos_quotes", true, listCol("presupuestos_quotes"));
+    await probe("list comparador_products", true, listCol("comparador_products"));
     await probe("list portal_projects", true, listCol("portal_projects"));
     await probe("list portal_clients", true, listCol("portal_clients"));
     await probe("list users (leads)", true, listCol("users"));
@@ -487,6 +619,7 @@ if (SIN_SONDAS) {
     await probe("list projects (portfolio público)", false, listCol("projects"));
     await probe("list web (textos públicos)", false, listCol("web"));
     await probe("storage list portal/projects/", true, () => listAll(storageRef(cst, "portal/projects")));
+    await probe("storage list comparador/products/", true, () => listAll(storageRef(cst, "comparador/products")));
     await probe("storage list raíz del bucket", true, () => listAll(storageRef(cst, "/")));
     await terminate(cdb);
     await deleteApp(app);
@@ -525,7 +658,8 @@ if (COMPARE_WITH) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 const stamp = report.generatedAt.replace(/[:.]/g, "-");
-const outFile = path.join(OUT_DIR, `audit-${stamp}.json`);
+// Los informes de una prueba en emuladores no se pueden confundir con los reales.
+const outFile = path.join(OUT_DIR, `audit-${ON_EMULATORS ? "emuladores-" : ""}${stamp}.json`);
 writeFileSync(outFile, JSON.stringify(report, null, 2));
 
 section("Resumen");

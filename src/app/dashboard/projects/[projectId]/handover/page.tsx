@@ -3,6 +3,7 @@ import { getPhases, getDocuments, getPhotos, getWeeklyUpdates } from "@/lib/fire
 import { withSignedPhotoUrls } from "@/lib/firebase/storage-urls";
 import { getProjectPageAccess } from "@/lib/firebase/project-access";
 import { AccessRestricted } from "@/components/access-restricted";
+import type { PortalDocument, PortalPhase, PortalPhoto, PortalWeeklyUpdate } from "@/types/portal";
 import { HandoverClient } from "./handover-client";
 
 interface PageProps {
@@ -18,12 +19,12 @@ export default async function ClientProjectHandoverPage({ params }: PageProps) {
   if (access.mode === "denied") {
     return <AccessRestricted message="No tienes autorización para acceder a la entrega de este proyecto." />;
   }
-  const { profile, project } = access;
+  const { project } = access;
 
-  let phases: any[] = [];
-  let documents: any[] = [];
-  let photos: any[] = [];
-  let weeklyUpdates: any[] = [];
+  let phases: PortalPhase[] = [];
+  let documents: PortalDocument[] = [];
+  let photos: PortalPhoto[] = [];
+  let weeklyUpdates: PortalWeeklyUpdate[] = [];
 
   try {
     const [phasesData, documentsData, photosData, weeklyUpdatesData] = await Promise.all([
@@ -48,7 +49,6 @@ export default async function ClientProjectHandoverPage({ params }: PageProps) {
       documents={documents}
       photos={photos}
       weeklyUpdates={weeklyUpdates}
-      profile={profile}
     />
   );
 }

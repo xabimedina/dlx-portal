@@ -1,22 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Download, Search, RefreshCw,
-  FolderArchive, Check
-} from "lucide-react";
-import { Profile } from "@/lib/firebase/profile";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { getSignedDocumentUrlAction } from "../../../actions";
+import Link from "next/link";
+import { ChevronDown, ChevronLeft, Download, FolderOpen, RefreshCw, Search } from "lucide-react";
+import { Cells, Eyebrow, Notice, SecHead, StatusBadge } from "@/components/portal-ui";
 import { useToast, ToastViewport } from "@/components/toast";
-import { formatDateEs } from "@/lib/format-date-es";
+import { daysBetween } from "@/lib/format-date-es";
+import type { PortalDocument, PortalPhase } from "@/types/portal";
+import { getSignedDocumentUrlAction } from "../../../actions";
+
+/**
+ * Documentos (fase 2): un índice en rejilla con filetes (los grupos con su recuento) en
+ * lugar de una lista llena de secciones vacías; debajo, el grupo abierto. De cada grupo
+ * se enseña primero lo vigente. Las descargas siguen firmándose al momento (60 s).
+ * Pantalla tranquila: sin coreografía ni Saffron; el grupo abierto se invierte en Jet.
+ */
 
 interface DocumentsClientProps {
-  documents: any[];
-  phases: any[];
+  documents: PortalDocument[];
+  phases: PortalPhase[];
   projectId: string;
-  profile: Profile;
+  projectName: string;
+  /** Fecha del servidor (YYYY-MM-DD) para «Lo último». */
+  today: string;
 }
 
 const GROUPS = [
@@ -34,16 +40,56 @@ const GROUPS = [
   "Entrega"
 ];
 
+/** Lo vigente primero; lo sustituido, al final (dentro de cada estado, lo más reciente arriba). */
+const STATUS_RANK: Record<string, number> = { Aprobado: 0, "Revisión": 1, Borrador: 2, Obsoleto: 3 };
+
+const RECENT_DAYS = 7;
+const GROUP_PANEL_ID = "doc-grupo";
+
+const BTN_SECONDARY =
+  "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-control-line px-4 text-sm font-semibold text-ink hover:border-jet hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-45";
+
+const bytesFmt = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
+function formatBytes(bytes: number | null | undefined): string {
+  if (bytes === null || bytes === undefined) return "";
+  if (bytes === 0) return "0\u00a0B";
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+  return `${bytesFmt.format(bytes / Math.pow(1024, i))}\u00a0${sizes[i]}`;
+}
+
+/** «application/pdf» → «PDF» (solo si la extensión es corta y legible). */
+function formatLabel(mime: string | null | undefined): string {
+  const sub = (mime || "").split("/")[1] || "";
+  return sub && sub.length <= 4 ? sub.toUpperCase() : "";
+}
+
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+/** «2026-11-02…» → «2 nov 2026», para la línea técnica (sin construir un Date). */
+function shortDate(value: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || "");
+  if (!m || Number(m[2]) < 1 || Number(m[2]) > 12) return "";
+  return `${Number(m[3])} ${MESES[Number(m[2]) - 1]} ${m[1]}`;
+}
+
+/** «2.1» → «v2.1»; «v3» se queda igual. */
+function versionLabel(version: string | null | undefined): string {
+  const v = (version || "").trim();
+  if (!v) return "";
+  return /^v/i.test(v) ? v : `v${v}`;
+}
+
 export function DocumentsClient({
   documents,
   phases,
   projectId,
-  profile,
+  projectName,
+  today,
 }: DocumentsClientProps) {
-  void projectId; void profile;
-
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
+  // Grupo abierto bajo el índice (por defecto, el primero con documentos)
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
   // Estado de carga individual para las firmas criptográficas de descarga
   const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
@@ -51,18 +97,8 @@ export function DocumentsClient({
   // Toast (sustituye a los alert() del navegador)
   const { toast, showToast, dismissToast } = useToast();
 
-  // Formateador de bytes
-  const formatBytes = (bytes: number | null): string => {
-    if (bytes === null || bytes === undefined) return "";
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
-
   // Manejador de descargas seguras mediante firmado de URL on-demand
-  const handleDownload = async (doc: any) => {
+  const handleDownload = async (doc: PortalDocument) => {
     setLoadingDocId(doc.id);
     try {
       // Generar URL firmada efímera por 60 segundos
@@ -81,16 +117,15 @@ export function DocumentsClient({
   };
 
   // Algoritmo semántico inteligente de agrupación
-  const getDocumentGroup = (doc: any) => {
+  const getDocumentGroup = (doc: PortalDocument) => {
     const phase = phases.find(p => p.id === doc.phase_id);
     const titleLower = doc.title.toLowerCase();
-    const catLower = doc.category.toLowerCase();
-    
+
     // 1. Contrato y documentación inicial
     if (doc.category === 'Contrato' || titleLower.includes('contrato') || titleLower.includes('encargo') || titleLower.includes('nota de encargo') || (phase && phase.phase_number === 'Fase 0')) {
       return 'Contrato y documentación inicial';
     }
-    
+
     // 2. Estado actual
     if (titleLower.includes('estado actual') || titleLower.includes('actual') || titleLower.includes('levantamiento') || titleLower.includes('medicion inicial') || titleLower.includes('plano de estado')) {
       return 'Estado actual';
@@ -156,200 +191,266 @@ export function DocumentsClient({
     return 'Contrato y documentación inicial';
   };
 
-  // Clasificar y agrupar todos los documentos
-  const groupedDocuments: Record<string, any[]> = {};
-  GROUPS.forEach(g => {
+  // Clasificar y agrupar los documentos (los que coinciden con la búsqueda)
+  const query = searchQuery.trim().toLowerCase();
+  const searching = query !== "";
+  const filteredDocs = documents.filter((doc) => doc.title.toLowerCase().includes(query));
+
+  const groupedDocuments: Record<string, PortalDocument[]> = {};
+  GROUPS.forEach((g) => {
     groupedDocuments[g] = [];
   });
-
-  // Filtrar documentos por búsqueda de texto y distribuirlos
-  const filteredDocs = documents.filter(doc => {
-    return doc.title.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  filteredDocs.forEach(doc => {
+  filteredDocs.forEach((doc) => {
     const grp = getDocumentGroup(doc);
-    if (groupedDocuments[grp]) {
-      groupedDocuments[grp].push(doc);
-    } else {
-      // Fallback a Contrato si fallase
-      groupedDocuments["Contrato y documentación inicial"].push(doc);
-    }
+    // Fallback a Contrato si fallase
+    (groupedDocuments[grp] ?? groupedDocuments["Contrato y documentación inicial"]).push(doc);
   });
+  GROUPS.forEach((g) => {
+    groupedDocuments[g].sort((a, b) => (STATUS_RANK[a.status] ?? 2) - (STATUS_RANK[b.status] ?? 2));
+  });
+
+  const fullGroups = GROUPS.filter((g) => groupedDocuments[g].length > 0);
+  const emptyGroups = GROUPS.filter((g) => groupedDocuments[g].length === 0);
+  const currentGroup = openGroup && groupedDocuments[openGroup]?.length ? openGroup : fullGroups[0] ?? null;
+
+  const recentDocs = documents
+    .filter((d) => d.created_at && daysBetween(d.created_at.slice(0, 10), today) <= RECENT_DAYS)
+    .slice(0, 3);
+  const newest = [...documents].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))[0];
+  const vigentes = documents.filter((d) => d.status === "Aprobado").length;
+
+  // Huecos para cerrar la última fila de la rejilla (2 columnas en móvil, 3 desde sm)
+  const fill2 = (2 - (fullGroups.length % 2)) % 2;
+  const fill3 = (3 - (fullGroups.length % 3)) % 3;
+  const fillers = Array.from({ length: Math.max(fill2, fill3) }, (_, i) => i);
+
+  const plural = (n: number) => (n === 1 ? "documento" : "documentos");
+
+  const openGroupAt = (group: string) => {
+    setOpenGroup(group);
+    // Si el grupo abierto queda fuera de la vista (móvil), se lleva hasta él sin animar
+    requestAnimationFrame(() => {
+      const el = document.getElementById(GROUP_PANEL_ID);
+      if (el && el.getBoundingClientRect().top > window.innerHeight - 160) el.scrollIntoView({ block: "start" });
+    });
+  };
+
+  const phaseLabel = (doc: PortalDocument) => {
+    const phase = phases.find((p) => p.id === doc.phase_id);
+    return phase ? `${phase.phase_number} · ${phase.name}` : "Diseño general";
+  };
+
+  const docList = (docs: PortalDocument[]) => (
+    <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+      {docs.map((doc) => {
+        const old = doc.status === "Obsoleto";
+        const busy = loadingDocId === doc.id;
+        const tech = [versionLabel(doc.version), shortDate(doc.created_at)].filter(Boolean).join(" · ");
+        const caption = [phaseLabel(doc), [formatLabel(doc.mime_type), formatBytes(doc.file_size)].filter(Boolean).join("\u00a0")]
+          .filter(Boolean)
+          .join(" · ");
+        return (
+          <li key={doc.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-x-3 px-4 pb-4 pt-3.5 sm:px-5">
+            <p className="col-span-2 flex flex-wrap items-center gap-1.5 sm:col-span-1">
+              <span className="cell-k mr-1">{doc.category}</span>
+              <StatusBadge kind="documento" status={doc.status} />
+            </p>
+            <p
+              className={`col-span-2 mt-2 break-words text-base leading-[1.3] sm:col-span-1 ${
+                old ? "font-medium text-ink-mute" : "font-semibold text-ink"
+              }`}
+            >
+              {old ? <s className="decoration-1">{doc.title}</s> : doc.title}
+            </p>
+            <div className="mt-1.5 min-w-0 space-y-0.5">
+              {tech && <p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-mute tabular-nums">{tech}</p>}
+              <p className="text-xs font-medium text-ink-mute">{caption}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleDownload(doc)}
+              disabled={loadingDocId !== null}
+              className={`${BTN_SECONDARY} sm:col-start-2 sm:row-span-3 sm:row-start-1 sm:self-center`}
+            >
+              {busy ? <RefreshCw className="size-4 animate-spin" aria-hidden /> : <Download className="size-4" aria-hidden />}
+              {busy ? "Preparando…" : "Descargar"}
+              <span className="sr-only">
+                {" "}
+                {doc.title}
+                {doc.version ? `, ${versionLabel(doc.version)}` : ""}
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
-    <div className="space-y-8">
-
-      {/* Cabecera y Introducción */}
-      <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-[10px] font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-[0.15em]">
-            <FolderArchive className="h-3.5 w-3.5 text-amber-500" />
-            <span>Biblioteca de proyecto</span>
-          </div>
-          <h1 className="text-3xl font-light tracking-tight text-zinc-900 dark:text-white leading-tight">
-            Documentos
-          </h1>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-light max-w-xl">
-            Expediente digital completo de tu vivienda. Accede de forma segura y descarga las versiones definitivas vigentes de planos de distribución, proyectos técnicos, licencias y presupuestos oficiales.
-          </p>
-        </div>
-
-        {/* Buscador de Documentos */}
-        <Card className="border border-zinc-200/50 bg-white/70 dark:border-zinc-800/50 dark:bg-zinc-900/60 p-4 shadow-xs rounded-3xl backdrop-blur-md">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-            <input 
-              type="text"
-              placeholder="Buscar documentos o planos por nombre..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-zinc-50 border border-zinc-200 dark:bg-zinc-950 dark:border-zinc-850 rounded-2xl text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 placeholder:text-zinc-500"
+    <div className="space-y-12">
+      {/* Cabecera y búsqueda */}
+      <header className="space-y-3">
+        <Link
+          href={`/dashboard/projects/${projectId}/mas`}
+          className="-ml-1.5 -mt-2 flex min-h-11 w-fit items-center gap-1 pr-2 text-sm font-semibold text-ink lg:hidden"
+        >
+          <ChevronLeft className="size-5" aria-hidden />
+          Más
+        </Link>
+        <Eyebrow>{projectName}</Eyebrow>
+        <h1 className="display-portal text-ink">Documentos</h1>
+        <p className="max-w-[60ch] text-[15px] leading-[1.6] text-ink-soft">
+          Todo el expediente de tu casa, ordenado por temas: planos, contratos, licencias y presupuestos. De cada tema te
+          enseñamos primero lo que está vigente.
+        </p>
+        {documents.length > 0 && (
+          <div className="space-y-6 pt-3">
+            <Cells
+              items={[
+                { k: "Documentos", v: documents.length },
+                { k: "Vigentes", v: vigentes },
+                { k: "Último", v: newest ? shortDate(newest.created_at) : "—" },
+              ]}
             />
+            <form role="search" className="relative max-w-xl" onSubmit={(e) => e.preventDefault()}>
+              <label htmlFor="doc-q" className="sr-only">
+                Buscar en tus documentos
+              </label>
+              <Search className="pointer-events-none absolute left-3.5 top-3.5 size-5 text-ink-mute" aria-hidden />
+              <input
+                id="doc-q"
+                type="search"
+                autoComplete="off"
+                placeholder="Buscar por nombre"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block h-12 w-full rounded-md border-[1.5px] border-control-line bg-white pl-11 pr-3.5 text-base text-ink transition-colors placeholder:text-ink-mute hover:border-jet"
+              />
+            </form>
           </div>
-        </Card>
+        )}
+      </header>
 
-        {/* Listado de Grupos en Acordeón o Secciones */}
-        <div className="space-y-6">
-          {GROUPS.map((groupName) => {
-            const groupDocs = groupedDocuments[groupName] || [];
-
-            // Ocultar grupo si no tiene documentos y hay un filtro activo (para limpiar la UI)
-            if (groupDocs.length === 0 && searchQuery !== "") return null;
-
-            return (
-              <div key={groupName} className="space-y-3.5">
-                <div className="flex items-center justify-between border-b border-zinc-200/60 dark:border-zinc-800/80 pb-2">
-                  <h3 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 tracking-tight font-sans flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    {groupName}
-                  </h3>
-                  <span className="font-mono text-[9px] bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full">
-                    {groupDocs.length} {groupDocs.length === 1 ? "documento" : "documentos"}
-                  </span>
-                </div>
-
-                {groupDocs.length === 0 ? (
-                  <p className="text-[10px] text-zinc-600 dark:text-zinc-400 font-mono italic pl-4">No hay documentos cargados en esta categoría todavía.</p>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                    {groupDocs.map((doc) => {
-                      const phase = phases.find(p => p.id === doc.phase_id);
-                      
-                      // Mapeo exacto de estados
-                      const isVigente = doc.status === "Aprobado";
-                      const isSustituido = doc.status === "Obsoleto";
-                      const isBorrador = doc.status === "Borrador";
-                      const isValidado = doc.status === "Revisión"; // O Validado si se crearan en DB
-
-                      let statusLabel = doc.status;
-                      let statusBadgeClass = "bg-zinc-100 text-zinc-650 dark:text-zinc-550 border-zinc-200";
-
-                      if (isVigente) {
-                        statusLabel = "Vigente";
-                        statusBadgeClass = "bg-zinc-500/10 text-zinc-600 border-zinc-500/25 font-bold shadow-xs";
-                      } else if (isSustituido) {
-                        statusLabel = "Sustituido";
-                        statusBadgeClass = "bg-zinc-150 text-zinc-600 dark:text-zinc-400 border-zinc-200 line-through";
-                      } else if (isBorrador) {
-                        statusLabel = "Preliminar";
-                        statusBadgeClass = "bg-zinc-100 text-zinc-600 dark:text-zinc-500 border-zinc-200";
-                      } else {
-                        statusLabel = "Validado";
-                        statusBadgeClass = "bg-zinc-800/10 text-zinc-800 border-zinc-800/25";
-                      }
-
-                      return (
-                        <Card 
-                          key={doc.id}
-                          className={`relative border bg-white/70 dark:bg-zinc-900/60 shadow-2xs hover:shadow-md transition-all duration-300 rounded-3xl overflow-hidden ${
-                            isVigente 
-                              ? "border-zinc-500/35 dark:border-zinc-500/25 ring-1 ring-zinc-500/5 bg-zinc-500/[0.01]" 
-                              : isSustituido
-                                ? "border-zinc-200/40 opacity-70"
-                                : "border-zinc-200/70 dark:border-zinc-850"
-                          }`}
-                        >
-                          {/* Franja vertical de destaque oficial en vigor */}
-                          {isVigente && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-zinc-500" />
-                          )}
-
-                          <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-xs">
-                            
-                            {/* Información del documento */}
-                            <div className="space-y-1 pl-1 flex-grow overflow-hidden pr-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-mono text-[10px] bg-zinc-100 text-zinc-650 dark:bg-zinc-950 dark:text-zinc-450 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
-                                  {doc.category}
-                                </span>
-                                
-                                <span className={`font-mono text-[10px] px-2 py-0.5 rounded border uppercase tracking-wider ${statusBadgeClass}`}>
-                                  {statusLabel}
-                                </span>
-
-                                {isVigente && (
-                                  <span className="font-mono text-[10px] bg-zinc-500 text-white font-bold px-1.5 py-0.5 rounded uppercase tracking-widest flex items-center gap-0.5">
-                                    <Check className="h-2.5 w-2.5 stroke-[3]" /> Oficial
-                                  </span>
-                                )}
-                              </div>
-
-                              <h4 className={`text-xs sm:text-sm font-semibold text-zinc-950 dark:text-white mt-1.5 truncate ${
-                                isSustituido ? "line-through opacity-60" : ""
-                              }`}>
-                                {doc.title}
-                              </h4>
-
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-zinc-600 dark:text-zinc-400 pt-0.5 font-light">
-                                <span>{phase ? `${phase.phase_number} • ${phase.name}` : "Diseño General"}</span>
-                                <span>•</span>
-                                <span>Versión {doc.version || "v1.0"}</span>
-                                <span>•</span>
-                                <span>Registrado el {formatDateEs(doc.created_at)}</span>
-                              </div>
-                            </div>
-
-                            {/* Botón de descarga y peso */}
-                            <div className="shrink-0 flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 border-zinc-150/40 pt-3.5 sm:pt-0 pl-1 sm:pl-0">
-                              <span className="font-mono text-[9px] text-zinc-600 dark:text-zinc-450">{formatBytes(doc.file_size)}</span>
-                              
-                              <Button
-                                onClick={() => handleDownload(doc)}
-                                disabled={loadingDocId !== null}
-                                className={`text-[10px] font-semibold uppercase tracking-[0.15em] h-10 sm:h-9 px-4 rounded-2xl flex items-center justify-center gap-1.5 shadow-2xs ${
-                                  isVigente
-                                    ? "bg-zinc-600 hover:bg-zinc-500 text-white dark:bg-zinc-600 dark:hover:bg-zinc-500"
-                                    : "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100"
-                                }`}
-                              >
-                                {loadingDocId === doc.id ? (
-                                  <>
-                                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                                    Preparando descarga…
-                                  </>
-                                ) : (
-                                  <>
-                                    Descargar
-                                    <Download className="h-3.5 w-3.5" />
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
+      {documents.length === 0 ? (
+        <Notice tone="default" title="Aún no hay documentos" icon={<FolderOpen aria-hidden />}>
+          El estudio irá subiendo aquí los planos, contratos, licencias y presupuestos de tu obra.
+        </Notice>
+      ) : searching ? (
+        /* Resultados de la búsqueda, por grupos (solo los que tienen coincidencias) */
+        <section aria-labelledby="doc-res" className="space-y-6">
+          <SecHead
+            id="doc-res"
+            title="Resultados"
+            action={
+              <span className="text-xs font-semibold text-ink-mute tabular-nums" aria-live="polite">
+                {filteredDocs.length} {plural(filteredDocs.length)}
+              </span>
+            }
+          />
+          {filteredDocs.length === 0 ? (
+            <Notice tone="default" title="Sin resultados">
+              No hay documentos cuyo nombre contenga «{searchQuery.trim()}».
+            </Notice>
+          ) : (
+            fullGroups.map((group) => (
+              <div key={group} className="space-y-2.5">
+                <Eyebrow bare>{group}</Eyebrow>
+                {docList(groupedDocuments[group])}
               </div>
-            );
-          })}
-        </div>
+            ))
+          )}
+        </section>
+      ) : (
+        <>
+          {/* Lo último */}
+          {recentDocs.length > 0 && (
+            <section aria-labelledby="doc-ult" className="space-y-4">
+              <SecHead
+                id="doc-ult"
+                title="Lo último"
+                action={<span className="text-xs font-semibold text-ink-mute">Últimos {RECENT_DAYS} días</span>}
+              />
+              {docList(recentDocs)}
+            </section>
+          )}
+
+          {/* Índice en rejilla: los grupos con su recuento */}
+          <section aria-labelledby="doc-idx" className="space-y-4">
+            <SecHead
+              id="doc-idx"
+              title="Índice"
+              action={
+                <span className="text-xs font-semibold text-ink-mute tabular-nums">
+                  {fullGroups.length} {fullGroups.length === 1 ? "tema" : "temas"}
+                </span>
+              }
+            />
+            <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+              {fullGroups.map((group) => {
+                const n = groupedDocuments[group].length;
+                const active = group === currentGroup;
+                return (
+                  <li key={group} className="flex">
+                    <button
+                      type="button"
+                      aria-expanded={active}
+                      aria-controls={GROUP_PANEL_ID}
+                      onClick={() => openGroupAt(group)}
+                      className={`relative flex min-h-[88px] flex-1 flex-col px-3.5 py-3 text-left transition-colors duration-[140ms] focus-visible:shadow-[inset_0_0_0_3px_var(--ring)] ${
+                        active ? "bg-jet text-whitesmoke" : "bg-card text-ink hover:bg-zinc-50"
+                      }`}
+                    >
+                      <span className="line-clamp-3 text-[15px] font-semibold leading-[1.3]">{group}</span>
+                      <span className="mt-auto flex items-baseline gap-1.5 pt-2">
+                        <span className="text-[32px] font-light leading-none tracking-[-0.01em] tabular-nums">{n}</span>
+                        <span className={`text-xs font-medium ${active ? "text-zinc-300" : "text-ink-mute"}`}>{plural(n)}</span>
+                        {active && <ChevronDown className="ml-auto size-4 self-center" aria-hidden />}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+              {fillers.map((i) => (
+                <li
+                  key={`hueco-${i}`}
+                  aria-hidden
+                  className={`bg-card ${i < fill2 ? "block" : "hidden"} ${i < fill3 ? "sm:block" : "sm:hidden"}`}
+                />
+              ))}
+            </ul>
+            {emptyGroups.length > 0 && (
+              <p className="text-sm leading-[1.6] text-ink-soft">
+                <span className="font-semibold text-ink">Sin documentos todavía:</span> {emptyGroups.join(" · ")}
+              </p>
+            )}
+          </section>
+
+          {/* El grupo abierto */}
+          {currentGroup && (
+            <section id={GROUP_PANEL_ID} aria-labelledby="doc-grupo-t" className="scroll-mt-24 space-y-4">
+              <SecHead
+                id="doc-grupo-t"
+                title={currentGroup}
+                action={
+                  <span className="text-xs font-semibold text-ink-mute tabular-nums">
+                    {groupedDocuments[currentGroup].length} {plural(groupedDocuments[currentGroup].length)}
+                  </span>
+                }
+              />
+              {docList(groupedDocuments[currentGroup])}
+              {groupedDocuments[currentGroup].some((d) => d.status === "Obsoleto") && (
+                <Notice tone="default" title="Versiones sustituidas">
+                  Guardamos las versiones sustituidas para que veas cómo ha cambiado tu proyecto. La que vale es siempre la
+                  vigente.
+                </Notice>
+              )}
+            </section>
+          )}
+        </>
+      )}
 
       {/* Toast Notification flotante */}
       <ToastViewport toast={toast} onDismiss={dismissToast} />
-
     </div>
   );
 }

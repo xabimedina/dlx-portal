@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { Image as ImageIcon, AlertCircle } from "lucide-react";
 import type { PortalPhoto as Photo } from "@/types/portal";
 
@@ -11,22 +11,39 @@ interface PhotoImageProps {
   containerClassName?: string; // Estilos CSS aplicados al contenedor wrapper
   alt?: string;
   fill?: boolean; // Si es true, el componente llenará el contenedor padre (como next/image fill)
+  /** Etiqueta honesta sobre la foto: «Foto de obra · Salón», «Render», «Referencia», «Foto final»… */
+  tag?: string;
 }
 
-export function PhotoImage({ 
-  photo, 
-  mode, 
-  className = "", 
-  containerClassName = "", 
-  alt,
-  fill = false
-}: PhotoImageProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+type LoadStatus = "loading" | "loaded" | "error";
 
+export function PhotoImage({
+  photo,
+  mode,
+  className = "",
+  containerClassName = "",
+  alt,
+  fill = false,
+  tag,
+}: PhotoImageProps) {
   // Determinar la URL correcta a usar según el modo
   const src = mode === "gallery" ? (photo.thumbnail_url || photo.image_url) : photo.image_url;
-  
+
+  // El estado va ligado a la fuente: al cambiar de foto (visor) vuelve solo a «cargando»
+  const [load, setLoad] = useState<{ src: string; status: LoadStatus }>({ src, status: "loading" });
+  const status: LoadStatus = load.src === src ? load.status : "loading";
+
+  // Con loading="lazy" y la caché del navegador, la foto puede terminar de cargar
+  // antes de que React hidrate: entonces onLoad no llega nunca y la foto se quedaba
+  // invisible en «Cargando…». Al montar (y al cambiar de fuente) se mira si ya está.
+  const imgRef = useCallback(
+    (img: HTMLImageElement | null) => {
+      if (!img || !img.complete) return;
+      setLoad({ src, status: img.naturalWidth > 0 ? "loaded" : "error" });
+    },
+    [src]
+  );
+
   // Texto alternativo descriptivo
   const imageAlt = alt || photo.caption || `${photo.room} - Foto de obra`;
 
@@ -36,12 +53,6 @@ export function PhotoImage({
     ? { aspectRatio: `${photo.width} / ${photo.height}` }
     : { aspectRatio: "4 / 3" }; // Fallback estándar para fotos de obra
 
-  // Restablecer estados si cambia la fuente (por ejemplo, al cambiar de foto en Lightbox)
-  useEffect(() => {
-    setIsLoaded(false);
-    setHasError(false);
-  }, [src]);
-
   // Si fill es true, el wrapper llena el contenedor padre; si no, usa aspect-ratio
   const wrapperClass = fill
     ? "absolute inset-0 w-full h-full"
@@ -50,43 +61,49 @@ export function PhotoImage({
   const wrapperStyle = fill ? {} : aspectRatioStyle;
 
   return (
-    <div 
-      className={`overflow-hidden bg-zinc-100 dark:bg-zinc-950 transition-all duration-300 ${wrapperClass} ${containerClassName}`}
+    <div
+      className={`overflow-hidden bg-zinc-100 dark:bg-zinc-950 ${wrapperClass} ${containerClassName}`}
       style={wrapperStyle}
     >
-      {/* Esqueleto de Carga (Skeleton) */}
-      {!isLoaded && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-200 dark:bg-zinc-900 animate-pulse z-10">
-          <div className="flex flex-col items-center space-y-2 text-zinc-600 dark:text-zinc-400">
-            <ImageIcon className="h-6 w-6 animate-bounce" />
-            <span className="text-[9px] font-mono uppercase tracking-wider">Cargando...</span>
-          </div>
+      {/* Mientras carga: rayado de obra quieto (45°, cada 12 px). Sin pulsos ni rebotes. */}
+      {status === "loading" && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-zinc-100 bg-[repeating-linear-gradient(45deg,transparent_0_11px,rgba(51,53,51,0.1)_11px_12px)] dark:bg-zinc-900">
+          <ImageIcon className="h-5 w-5 text-zinc-400" aria-hidden />
+          <span className="sr-only">Cargando foto</span>
         </div>
       )}
 
       {/* Fallback de Error (ej. Enlace expirado o roto) */}
-      {hasError ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-900 text-center border border-zinc-200/50 dark:border-zinc-800/50 z-20">
-          <AlertCircle className="h-6 w-6 text-amber-500 mb-1" />
-          <h5 className="text-[10px] font-bold text-zinc-800 dark:text-zinc-200 font-mono uppercase">Enlace Expirado</h5>
-          <p className="text-[9px] text-zinc-600 dark:text-zinc-400 font-light max-w-[180px] leading-normal mt-0.5">
-            La URL firmada ha vencido por seguridad. Recarga la página.
+      {status === "error" ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1 bg-zinc-50 p-4 text-center dark:bg-zinc-900">
+          <AlertCircle className="h-5 w-5 text-zinc-500" aria-hidden />
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-800 dark:text-zinc-200">Enlace caducado</p>
+          <p className="max-w-[200px] text-xs leading-snug text-zinc-600 dark:text-zinc-400">
+            El enlace de la foto vence por seguridad. Recarga la página para verla.
           </p>
         </div>
       ) : (
         /* Etiqueta de Imagen Nativa (Bypass total de Vercel Image Optimization) */
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
+          ref={imgRef}
           src={src}
           alt={imageAlt}
           loading="lazy"
           decoding="async"
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setHasError(true)}
-          className={`w-full h-full transition-all duration-500 ${
-            isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-95 blur-xs"
+          onLoad={() => setLoad({ src, status: "loaded" })}
+          onError={() => setLoad({ src, status: "error" })}
+          className={`w-full h-full transition-opacity duration-[220ms] ease-out ${
+            status === "loaded" ? "opacity-100" : "opacity-0"
           } ${className}`}
         />
+      )}
+
+      {/* Cada imagen dice lo que es: foto de obra, render, referencia… Nada miente. */}
+      {tag && status !== "error" && (
+        <span className="pointer-events-none absolute left-2.5 top-2.5 z-30 max-w-[calc(100%-20px)] truncate rounded-md bg-whitesmoke px-2 py-1 text-xs font-semibold uppercase leading-tight tracking-[0.1em] text-jet">
+          {tag}
+        </span>
       )}
     </div>
   );

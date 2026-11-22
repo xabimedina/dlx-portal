@@ -11,6 +11,8 @@ import type {
   PortalWeeklyUpdate,
   PortalPhoto,
   PortalRequest,
+  PortalModel3dVersion,
+  PortalModel3dImagen,
 } from "@/types/portal";
 
 /**
@@ -28,7 +30,9 @@ import type {
  *     ├─ meetings/{id}
  *     ├─ documents/{id}
  *     ├─ weeklyUpdates/{id}
- *     └─ photos/{id}
+ *     ├─ photos/{id}
+ *     ├─ model3d/{id}                  versiones de la maqueta 3D (una publicada)
+ *     └─ model3dImages/{id}            fotos y renders de la maqueta
  *
  * Los nombres de campo se mantienen en snake_case (project_id, full_name,
  * meeting_date, file_url…) idénticos al modelo anterior, para que la interfaz
@@ -138,6 +142,20 @@ export async function getWeeklyUpdates(projectId: string): Promise<PortalWeeklyU
 export async function getPhotos(projectId: string): Promise<PortalPhoto[]> {
   const snap = await (await sub(projectId, "photos")).orderBy("created_at", "desc").get();
   return listData<PortalPhoto>(snap);
+}
+
+/** La versión publicada de la maqueta 3D (como mucho una), o null. */
+export async function getModel3dPublished(projectId: string): Promise<PortalModel3dVersion | null> {
+  const snap = await (await sub(projectId, "model3d")).where("status", "==", "publicada").limit(1).get();
+  return snap.empty ? null : listData<PortalModel3dVersion>(snap)[0];
+}
+
+/** Fotos y renders de la maqueta, por estado, estancia y orden (sin orderBy: no pide índices). */
+export async function getModel3dImages(projectId: string): Promise<PortalModel3dImagen[]> {
+  const snap = await (await sub(projectId, "model3dImages")).get();
+  return listData<PortalModel3dImagen>(snap).sort(
+    (a, b) => a.estado.localeCompare(b.estado) || a.estancia_id.localeCompare(b.estancia_id) || a.orden - b.orden,
+  );
 }
 
 /**
